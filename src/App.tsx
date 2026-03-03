@@ -63,8 +63,8 @@ function App() {
         <PersistentUI />
 
         {/* Dynamic Section Content via GSAP */}
-        <main className="flex-grow flex items-center justify-center pt-24 pb-32 px-6">
-          <div ref={mainContainerRef} className="w-full flex justify-center items-center">
+        <main className="w-full pointer-events-auto">
+          <div ref={mainContainerRef} className="w-full flex justify-center items-start">
             {currentSection === 'home' && <SectionHero onEnterArena={() => navigateTo('arena')} />}
             {currentSection === 'arena' && <SectionArena />}
             {currentSection === 'leaderboard' && <SectionLeaderboard />}

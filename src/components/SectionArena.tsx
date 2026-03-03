@@ -30,18 +30,18 @@ export default function SectionArena() {
     const wagerOptions = [5, 10, 25, 50, 100, 500];
 
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center">
-            <div className="w-full max-w-5xl flex flex-col gap-8 py-4">
+        <div className="w-full min-h-[100dvh] flex flex-col items-center justify-center pt-24 pb-12">
+            <div className="w-[95%] max-w-[800px] flex flex-col gap-8 py-4">
                 {/* Wager Global Interface */}
                 <div className="glass-panel p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex flex-col gap-2 w-full md:w-auto">
                         <span className="text-white/50 text-sm tracking-widest">Select Wager (HBAR)</span>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2">
                             {wagerOptions.map((amount) => (
                                 <button
                                     key={amount}
                                     onClick={() => setWager(amount)}
-                                    className={`px-4 py-2 rounded-xl text-sm transition-all duration-300 ${wager === amount
+                                    className={`px-4 py-2 min-h-[44px] rounded-xl text-sm transition-all duration-300 ${wager === amount
                                         ? 'bg-hedera-green text-black font-semibold shadow-[0_0_15px_rgba(0,193,110,0.4)]'
                                         : 'bg-white/5 hover:bg-white/10 text-white border border-white/5'
                                         }`}
@@ -64,7 +64,7 @@ export default function SectionArena() {
                 </div>
 
                 {/* Game Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-[500px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 min-h-[500px]">
                     {/* Dice Game Card */}
                     <Tilt tiltMaxAngleX={5} tiltMaxAngleY={5} glareEnable={true} glareMaxOpacity={0.1} glareColor="#00C16E" glarePosition="all" scale={1.02} transitionSpeed={2000} className="arena-card h-full">
                         <div className="glass-panel rounded-3xl p-8 flex flex-col h-full justify-between transition-colors border border-white/10 relative overflow-hidden">
@@ -86,7 +86,7 @@ export default function SectionArena() {
                                 {['Lower', 'Equal', 'Higher'].map((choice) => (
                                     <button
                                         key={choice}
-                                        className="glass-panel py-3 rounded-xl text-sm tracking-widest hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:scale-[1.05] transition-all"
+                                        className="glass-panel py-3 min-h-[44px] rounded-xl text-sm tracking-widest hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:scale-[1.05] transition-all"
                                     >
                                         {choice}
                                     </button>
@@ -115,7 +115,7 @@ export default function SectionArena() {
                                 {['Heads', 'Tails'].map((choice) => (
                                     <button
                                         key={choice}
-                                        className="glass-panel py-3 rounded-xl text-sm tracking-widest hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:scale-[1.05] transition-all"
+                                        className="glass-panel py-3 min-h-[44px] rounded-xl text-sm tracking-widest hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:scale-[1.05] transition-all"
                                     >
                                         {choice}
                                     </button>

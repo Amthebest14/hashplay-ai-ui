@@ -3,6 +3,8 @@
 
 @theme {
   --color-hedera-green: #00C16E;
+  --color-electric-cyan: #00F2FF;
+  --color-deep-indigo: #1A1A2E;
   --font-inter: "Inter", sans-serif;
   --tracking-widest: 0.15em;
 }
@@ -15,9 +17,7 @@
     letter-spacing: var(--tracking-widest);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow: hidden;
-    height: 100vh;
-    width: 100vw;
+    overflow-x: hidden;
   }
 }
 

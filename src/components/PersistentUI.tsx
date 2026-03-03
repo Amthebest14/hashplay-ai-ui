@@ -17,17 +17,17 @@ export default function PersistentUI() {
                 </div>
 
                 {/* Top-Right Balance Capsule */}
-                <div className="pointer-events-auto flex items-center gap-2 glass-panel rounded-full p-1 border border-white/10 shadow-lg">
-                    <div className="flex flex-col text-right px-3 py-1 bg-black/20 rounded-full">
-                        <span className="text-xs text-white/50">HBAR</span>
-                        <span className="text-sm">0.00</span>
+                <div className="pointer-events-auto flex items-center gap-1 sm:gap-2 glass-panel rounded-full p-1 border border-white/10 shadow-lg">
+                    <div className="flex flex-col text-right px-2 py-1 sm:px-3 sm:py-1 bg-black/20 rounded-full">
+                        <span className="hidden sm:inline text-[10px] sm:text-xs text-white/50">HBAR</span>
+                        <span className="text-xs sm:text-sm">0.00</span>
                     </div>
-                    <div className="flex flex-col text-right px-3 py-1 bg-black/20 rounded-full">
-                        <span className="text-xs text-hedera-green/50">$HASHPLAY</span>
-                        <span className="text-sm text-hedera-green">0.00</span>
+                    <div className="flex flex-col text-right px-2 py-1 sm:px-3 sm:py-1 bg-black/20 rounded-full">
+                        <span className="hidden sm:inline text-[10px] sm:text-xs text-hedera-green/50">$HASHPLAY</span>
+                        <span className="text-xs sm:text-sm text-hedera-green">0.00</span>
                     </div>
-                    <button className="p-2 rounded-full hover:bg-white/10 transition-colors mr-1 group">
-                        <X className="w-4 h-4 text-white/50 group-hover:text-white" />
+                    <button className="p-1 sm:p-2 rounded-full hover:bg-white/10 transition-colors mr-1 group">
+                        <X className="w-3 h-3 sm:w-4 sm:h-4 text-white/50 group-hover:text-white" />
                     </button>
                 </div>
             </header>
