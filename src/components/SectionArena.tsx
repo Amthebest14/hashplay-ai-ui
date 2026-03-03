@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { RoundedBox, Text } from '@react-three/drei';
-import Tilt from 'react-parallax-tilt';
 
 function DiceMock({ position }: { position: [number, number, number] }) {
     return (
@@ -66,7 +65,7 @@ export default function SectionArena() {
                 {/* Game Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 min-h-[500px]">
                     {/* Dice Game Card */}
-                    <Tilt tiltMaxAngleX={5} tiltMaxAngleY={5} glareEnable={true} glareMaxOpacity={0.1} glareColor="#00C16E" glarePosition="all" scale={1.02} transitionSpeed={2000} className="arena-card h-full">
+                    <div className="arena-card h-full">
                         <div className="glass-panel rounded-3xl p-8 flex flex-col h-full justify-between transition-colors border border-white/10 relative overflow-hidden">
                             <div className="flex justify-between items-center relative z-10">
                                 <h2 className="text-2xl font-light text-white tracking-widest pointer-events-none">Dice Game</h2>
@@ -93,10 +92,10 @@ export default function SectionArena() {
                                 ))}
                             </div>
                         </div>
-                    </Tilt>
+                    </div>
 
                     {/* Coin Flip Card */}
-                    <Tilt tiltMaxAngleX={5} tiltMaxAngleY={5} glareEnable={true} glareMaxOpacity={0.1} glareColor="#00C16E" glarePosition="all" scale={1.02} transitionSpeed={2000} className="arena-card h-full">
+                    <div className="arena-card h-full">
                         <div className="glass-panel rounded-3xl p-8 flex flex-col h-full justify-between transition-colors border border-white/10 relative overflow-hidden">
                             <div className="flex justify-between items-center relative z-10">
                                 <h2 className="text-2xl font-light text-white tracking-widest pointer-events-none">Coin Flip</h2>
@@ -122,7 +121,7 @@ export default function SectionArena() {
                                 ))}
                             </div>
                         </div>
-                    </Tilt>
+                    </div>
                 </div>
             </div>
         </div>
