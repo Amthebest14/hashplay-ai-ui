@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -13,9 +13,13 @@ void main() {
 const fragmentShader = `
 uniform float uTime;
 uniform vec3 uColor;
+uniform vec2 uMouse;
+uniform vec2 uHoverPos;
+uniform float uHoverIntensity;
+
 varying vec2 vUv;
 
-// Simple 2D noise function
+// Simplex 2D noise
 vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
 float snoise(vec2 v){
   const vec4 C = vec4(0.211324865405187, 0.366025403784439,
@@ -45,38 +49,71 @@ float snoise(vec2 v){
 }
 
 void main() {
-  vec2 uv = vUv * 5.0; // scale of the ripples
+  // Base UV with aspect ratio correction
+  vec2 uv = vUv * 5.0; 
   
-  // Create moving ripples
-  float n1 = snoise(uv + uTime * 0.2);
-  float n2 = snoise(uv * 2.0 - uTime * 0.3);
-  float n3 = snoise(uv * 4.0 + uTime * 0.1);
+  // Distortion from mouse position (inertia effect)
+  vec2 distortion = uMouse * 0.5;
   
+  // Create heavy organic liquid movement
+  float n1 = snoise(uv + distortion + uTime * 0.15);
+  float n2 = snoise(uv * 1.5 - distortion + uTime * 0.2);
+  float n3 = snoise(uv * 3.0 + uTime * 0.1);
+  
+  // Refractive caustic lines
   float caustics = max(0.0, sin((n1 + n2 + n3) * 3.1415));
-  caustics = pow(caustics, 2.5); // Sharpen the highlights
+  caustics = pow(caustics, 3.0); // Sharpen into 'liquid metal' reflections
   
-  // Base color is black, ripples are uColor
-  vec3 finalColor = uColor * caustics * 0.15; // 15% opacity 
+  // Calculate distance to hover points for localized intensity increase
+  float distToHover = distance(vUv, uHoverPos);
+  float hoverInfluence = smoothstep(0.4, 0.0, distToHover) * uHoverIntensity;
   
-  gl_FragColor = vec4(finalColor, 1.0);
+  // Add hover glow
+  caustics += hoverInfluence * 0.5;
+
+  // Base is #000000, highlights are Hedera Green
+  vec3 baseColor = vec3(0.0);
+  vec3 liquidChrome = uColor * caustics * 0.25; // 25% opacity for deeper look
+  
+  gl_FragColor = vec4(baseColor + liquidChrome + (hoverInfluence * uColor * 0.1), 1.0);
 }
 `;
 
-function ShaderMesh({ speedLevel }: { speedLevel: number }) {
+function ShaderMesh({ speedLevel, mouseInertia, hoverState }: { speedLevel: number, mouseInertia: { x: number, y: number }, hoverState: { active: boolean, x: number, y: number } }) {
     const materialRef = useRef<THREE.ShaderMaterial>(null);
 
     const uniforms = useMemo(() => ({
         uTime: { value: 0 },
-        uColor: { value: new THREE.Color('#00C16E') }
+        uColor: { value: new THREE.Color('#00C16E') },
+        uMouse: { value: new THREE.Vector2(0, 0) },
+        uHoverPos: { value: new THREE.Vector2(0.5, 0.5) },
+        uHoverIntensity: { value: 0 }
     }), []);
 
-    // Use a local ref to track accumulated time based on speed
     const timeRef = useRef(0);
+    const smoothedMouse = useRef({ x: 0, y: 0 });
+    const smoothedIntensity = useRef(0);
 
     useFrame((_, delta) => {
         if (materialRef.current) {
+            // Time accumulation
             timeRef.current += delta * speedLevel;
             materialRef.current.uniforms.uTime.value = timeRef.current;
+
+            // Mouse inertia smoothing (lerp)
+            smoothedMouse.current.x += (mouseInertia.x - smoothedMouse.current.x) * delta * 2.0;
+            smoothedMouse.current.y += (mouseInertia.y - smoothedMouse.current.y) * delta * 2.0;
+            materialRef.current.uniforms.uMouse.value.set(smoothedMouse.current.x, smoothedMouse.current.y);
+
+            // Hover intensity smoothing
+            const targetIntensity = hoverState.active ? 1.0 : 0.0;
+            smoothedIntensity.current += (targetIntensity - smoothedIntensity.current) * delta * 5.0;
+            materialRef.current.uniforms.uHoverIntensity.value = smoothedIntensity.current;
+
+            // Set hover position
+            if (hoverState.active) {
+                materialRef.current.uniforms.uHoverPos.value.set(hoverState.x, hoverState.y);
+            }
         }
     });
 
@@ -95,11 +132,41 @@ function ShaderMesh({ speedLevel }: { speedLevel: number }) {
 }
 
 export default function BackgroundShader({ speedLevel = 1 }: { speedLevel?: number }) {
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const [hoverState, setHoverState] = useState({ active: false, x: 0.5, y: 0.5 });
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            // Normalize mouse position from -1 to 1
+            const x = (e.clientX / window.innerWidth) * 2 - 1;
+            const y = -(e.clientY / window.innerHeight) * 2 + 1;
+            setMousePos({ x, y });
+
+            // Check if hovering over arena cards (very basic hit detection)
+            const target = e.target as HTMLElement;
+            const card = target.closest('.arena-card');
+            if (card) {
+                const rect = card.getBoundingClientRect();
+                // Normalized UV position of the card center
+                const hoverX = (rect.left + rect.width / 2) / window.innerWidth;
+                const hoverY = 1.0 - ((rect.top + rect.height / 2) / window.innerHeight);
+                setHoverState({ active: true, x: hoverX, y: hoverY });
+            } else {
+                setHoverState(prev => ({ ...prev, active: false }));
+            }
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, []);
+
     return (
         <div className="fixed inset-0 z-0 bg-black pointer-events-none">
             <Canvas camera={{ position: [0, 0, 1] }}>
-                <ShaderMesh speedLevel={speedLevel} />
+                <ShaderMesh speedLevel={speedLevel} mouseInertia={mousePos} hoverState={hoverState} />
             </Canvas>
         </div>
     );
 }
+
+

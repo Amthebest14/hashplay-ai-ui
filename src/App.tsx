@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { useState, useRef, useLayoutEffect } from 'react';
+import gsap from 'gsap';
 import BackgroundShader from './components/BackgroundShader';
 import PersistentUI from './components/PersistentUI';
 import SectionHero from './components/SectionHero';
@@ -7,20 +7,49 @@ import SectionArena from './components/SectionArena';
 import SectionLeaderboard from './components/SectionLeaderboard';
 
 function App() {
-  // Navigation states: 'home', 'arena', 'leaderboard'
   const [currentSection, setCurrentSection] = useState<'home' | 'arena' | 'leaderboard'>('home');
-  // When switching, temporarily increase speed for transition
   const [bgSpeed, setBgSpeed] = useState(1);
+  const mainContainerRef = useRef<HTMLDivElement>(null);
+
+  // Use layout effect to handle the GSAP logic when currentSection changes
+  useLayoutEffect(() => {
+    if (!mainContainerRef.current) return;
+
+    // Animate IN the new section
+    gsap.fromTo(mainContainerRef.current,
+      { filter: 'blur(20px)', scale: 0.8, opacity: 0 },
+      { filter: 'blur(0px)', scale: 1.0, opacity: 1, duration: 0.8, ease: "power3.out", clearProps: "filter" }
+    );
+  }, [currentSection]);
 
   const navigateTo = (section: 'home' | 'arena' | 'leaderboard') => {
     if (section === currentSection) return;
 
-    setCurrentSection(section);
-    // Speed up ripples by 3x to indicate movement
-    setBgSpeed(3);
-    setTimeout(() => {
+    // Speed up ripples by 5x to indicate movement
+    setBgSpeed(5);
+
+    // Animate OUT the current section
+    if (mainContainerRef.current) {
+      gsap.to(mainContainerRef.current, {
+        filter: 'blur(10px)',
+        scale: 0.9,
+        opacity: 0,
+        duration: 0.4,
+        ease: "power2.in",
+        onComplete: () => {
+          // Switch state exactly when the out-animation finishes
+          setCurrentSection(section);
+
+          // Return ripples to normal slow speed
+          setTimeout(() => {
+            setBgSpeed(1);
+          }, 300);
+        }
+      });
+    } else {
+      setCurrentSection(section);
       setBgSpeed(1);
-    }, 800); // return to normal after 0.8s
+    }
   };
 
   return (
@@ -33,21 +62,13 @@ function App() {
         {/* Persistent UI Components */}
         <PersistentUI />
 
-        {/* Dynamic Section Content */}
+        {/* Dynamic Section Content via GSAP */}
         <main className="flex-grow flex items-center justify-center pt-24 pb-32 px-6">
-          <AnimatePresence mode="wait">
-            {currentSection === 'home' && (
-              <SectionHero key="home" onEnterArena={() => navigateTo('arena')} />
-            )}
-
-            {currentSection === 'arena' && (
-              <SectionArena key="arena" />
-            )}
-
-            {currentSection === 'leaderboard' && (
-              <SectionLeaderboard key="leaderboard" />
-            )}
-          </AnimatePresence>
+          <div ref={mainContainerRef} className="w-full flex justify-center items-center">
+            {currentSection === 'home' && <SectionHero onEnterArena={() => navigateTo('arena')} />}
+            {currentSection === 'arena' && <SectionArena />}
+            {currentSection === 'leaderboard' && <SectionLeaderboard />}
+          </div>
         </main>
 
         {/* Minimalist Floating Navigation Menu */}
