@@ -39,15 +39,15 @@ export default function SectionArena() {
             {/* Wager Global Interface */}
             <div className="glass-panel p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex flex-col gap-2 w-full md:w-auto">
-                    <span className="text-white/50 text-sm tracking-widest">select wager (hbar)</span>
+                    <span className="text-white/50 text-sm tracking-widest">Select Wager (HBAR)</span>
                     <div className="flex flex-wrap gap-2">
                         {wagerOptions.map((amount) => (
                             <button
                                 key={amount}
                                 onClick={() => setWager(amount)}
                                 className={`px-4 py-2 rounded-xl text-sm transition-all duration-300 ${wager === amount
-                                        ? 'bg-hedera-green text-black font-semibold shadow-[0_0_15px_rgba(0,193,110,0.4)]'
-                                        : 'bg-white/5 hover:bg-white/10 text-white border border-white/5'
+                                    ? 'bg-hedera-green text-black font-semibold shadow-[0_0_15px_rgba(0,193,110,0.4)]'
+                                    : 'bg-white/5 hover:bg-white/10 text-white border border-white/5'
                                     }`}
                             >
                                 {amount}
@@ -56,7 +56,7 @@ export default function SectionArena() {
                     </div>
                 </div>
                 <div className="flex flex-col gap-2 w-full md:w-48">
-                    <span className="text-white/50 text-sm tracking-widest">custom amount</span>
+                    <span className="text-white/50 text-sm tracking-widest">Custom Amount</span>
                     <input
                         type="number"
                         placeholder="0.00"
@@ -72,7 +72,7 @@ export default function SectionArena() {
                 {/* Dice Game Card */}
                 <div className="glass-panel rounded-3xl p-8 flex flex-col justify-between group hover:border-white/20 transition-colors">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-light text-white tracking-widest">dice game</h2>
+                        <h2 className="text-2xl font-light text-white tracking-widest">Dice Game</h2>
                         <div className="h-2 w-2 rounded-full bg-hedera-green shadow-[0_0_10px_rgba(0,193,110,0.8)]" />
                     </div>
 
@@ -86,7 +86,7 @@ export default function SectionArena() {
                     </div>
 
                     <div className="grid grid-cols-3 gap-3">
-                        {['lower', 'equal', 'higher'].map((choice) => (
+                        {['Lower', 'Equal', 'Higher'].map((choice) => (
                             <button
                                 key={choice}
                                 className="glass-panel py-3 rounded-xl text-sm tracking-widest hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:scale-[1.02] transition-all"
@@ -100,7 +100,7 @@ export default function SectionArena() {
                 {/* Coin Flip Card */}
                 <div className="glass-panel rounded-3xl p-8 flex flex-col justify-between group hover:border-white/20 transition-colors">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-light text-white tracking-widest">coin flip</h2>
+                        <h2 className="text-2xl font-light text-white tracking-widest">Coin Flip</h2>
                         <div className="h-2 w-2 rounded-full bg-hedera-green shadow-[0_0_10px_rgba(0,193,110,0.8)]" />
                     </div>
 
@@ -113,7 +113,7 @@ export default function SectionArena() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                        {['heads', 'tails'].map((choice) => (
+                        {['Heads', 'Tails'].map((choice) => (
                             <button
                                 key={choice}
                                 className="glass-panel py-3 rounded-xl text-sm tracking-widest hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:scale-[1.02] transition-all"

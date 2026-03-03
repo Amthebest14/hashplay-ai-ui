@@ -14,15 +14,15 @@ export default function SectionHero({ onEnterArena }: { onEnterArena: () => void
                 className="flex flex-col items-center gap-12"
             >
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-light leading-tight tracking-widest text-white/90">
-                    the future of play is <span className="text-hedera-green">liquid</span>. <br />
-                    mine $hashplay through every wager.
+                    The future of play is <span className="text-hedera-green">liquid</span>. <br />
+                    Mine $HASHPLAY through every wager.
                 </h1>
 
                 <button
                     onClick={onEnterArena}
                     className="glass-panel px-12 py-5 rounded-full text-lg tracking-widest hover:bg-hedera-green/20 hover:border-hedera-green/50 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,193,110,0.3)] transition-all duration-300"
                 >
-                    enter the arena
+                    Enter the Arena
                 </button>
             </motion.div>
         </motion.div>

@@ -15,16 +15,16 @@ export default function SectionLeaderboard() {
             className="w-full max-w-4xl flex flex-col h-[70vh]"
         >
             <div className="flex flex-col gap-2 mb-8 text-center">
-                <h2 className="text-3xl font-light tracking-widest text-white">high score</h2>
+                <h2 className="text-3xl font-light tracking-widest text-white">High Score</h2>
                 <div className="h-px w-24 bg-hedera-green/50 mx-auto mt-2" />
             </div>
 
             <div className="glass-panel rounded-3xl flex-1 flex flex-col overflow-hidden">
                 {/* Table Header */}
                 <div className="grid grid-cols-4 px-8 py-4 bg-black/40 border-b border-white/10 text-xs tracking-widest text-white/50 uppercase">
-                    <div className="col-span-1">rank</div>
-                    <div className="col-span-2">address</div>
-                    <div className="col-span-1 text-right">balance ($hashplay)</div>
+                    <div className="col-span-1">RANK</div>
+                    <div className="col-span-2">ADDRESS</div>
+                    <div className="col-span-1 text-right">BALANCE ($HASHPLAY)</div>
                 </div>
 
                 {/* Scrollable List */}
@@ -47,7 +47,7 @@ export default function SectionLeaderboard() {
             </div>
 
             <p className="text-center text-xs text-white/40 tracking-widest mt-6">
-                rankings are snapshot-ready for the mainnet airdrop allocation.
+                Rankings are snapshot-ready for the mainnet airdrop allocation.
             </p>
         </motion.div>
     );

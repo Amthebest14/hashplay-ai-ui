@@ -12,7 +12,6 @@
     font-family: var(--font-inter);
     color: white;
     background-color: black;
-    text-transform: lowercase;
     letter-spacing: var(--tracking-widest);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

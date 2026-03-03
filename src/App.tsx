@@ -51,26 +51,26 @@ function App() {
         </main>
 
         {/* Minimalist Floating Navigation Menu */}
-        <nav className="fixed bottom-24 left-1/2 -translate-x-1/2 glass-panel rounded-full px-8 py-3 flex gap-8 items-center z-50 shadow-2xl">
+        <nav className="fixed top-6 left-1/2 -translate-x-1/2 glass-panel rounded-full px-8 py-3 flex gap-8 items-center z-50 shadow-2xl">
           <button
             onClick={() => navigateTo('home')}
             className={`tracking-widest transition-colors duration-300 ${currentSection === 'home' ? 'text-hedera-green drop-shadow-[0_0_8px_rgba(0,193,110,0.8)]' : 'text-white/40 hover:text-white'}`}
           >
-            home
+            Home
           </button>
           <div className="w-px h-4 bg-white/20" />
           <button
             onClick={() => navigateTo('arena')}
             className={`tracking-widest transition-colors duration-300 ${currentSection === 'arena' ? 'text-hedera-green drop-shadow-[0_0_8px_rgba(0,193,110,0.8)]' : 'text-white/40 hover:text-white'}`}
           >
-            arena
+            Arena
           </button>
           <div className="w-px h-4 bg-white/20" />
           <button
             onClick={() => navigateTo('leaderboard')}
             className={`tracking-widest transition-colors duration-300 ${currentSection === 'leaderboard' ? 'text-hedera-green drop-shadow-[0_0_8px_rgba(0,193,110,0.8)]' : 'text-white/40 hover:text-white'}`}
           >
-            ranks
+            Ranks
           </button>
         </nav>
       </div>
