@@ -23,8 +23,8 @@ export default function PersistentUI() {
                         <span className="text-xs sm:text-sm">0.00</span>
                     </div>
                     <div className="flex flex-col text-right px-2 py-1 sm:px-3 sm:py-1 bg-black/20 rounded-full">
-                        <span className="hidden sm:inline text-[10px] sm:text-xs text-hedera-green/50">$HASHPLAY</span>
-                        <span className="text-xs sm:text-sm text-hedera-green">0.00</span>
+                        <span className="hidden sm:inline text-[10px] sm:text-xs text-[var(--color-hedera-green)]/50">$HASHPLAY</span>
+                        <span className="text-xs sm:text-sm text-[var(--color-hedera-green)]">0.00</span>
                     </div>
                     <button className="p-1 sm:p-2 rounded-full hover:bg-white/10 transition-colors mr-1 group">
                         <X className="w-3 h-3 sm:w-4 sm:h-4 text-white/50 group-hover:text-white" />
