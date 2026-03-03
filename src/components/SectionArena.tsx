@@ -30,8 +30,8 @@ export default function SectionArena() {
     const wagerOptions = [5, 10, 25, 50, 100, 500];
 
     return (
-        <div className="w-full h-screen flex flex-col items-center justify-center overflow-hidden">
-            <div className="w-full max-w-5xl flex flex-col gap-8">
+        <div className="w-full h-full flex flex-col items-center justify-center">
+            <div className="w-full max-w-5xl flex flex-col gap-8 py-4">
                 {/* Wager Global Interface */}
                 <div className="glass-panel p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex flex-col gap-2 w-full md:w-auto">

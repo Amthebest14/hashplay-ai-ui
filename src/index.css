@@ -15,7 +15,9 @@
     letter-spacing: var(--tracking-widest);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
   }
 }
 
