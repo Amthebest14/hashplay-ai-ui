@@ -1,9 +1,8 @@
-// @ts-nocheck
 import { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { RoundedBox, Text } from '@react-three/drei';
 import { playMiningEngineGame } from '../services/contractService';
-import { useDualWallet } from '../context/WalletConnectContext';
+import { useAppKitAccount } from '@reown/appkit/react';
 
 function DiceMock({ position }: { position: [number, number, number] }) {
     return (
@@ -31,11 +30,11 @@ export default function SectionArena() {
     const [wager, setWager] = useState<number>(0);
     const wagerOptions = [5, 10, 25, 50, 100, 500];
 
-    const { isUnifiedConnected, isHCConnected, w3mProvider, hcSessionData } = useDualWallet();
+    const { isConnected } = useAppKitAccount();
     const [txState, setTxState] = useState<{ status: 'idle' | 'pending' | 'success' | 'error', message: string }>({ status: 'idle', message: '' });
 
     const handlePlayGame = async (gameType: number, prediction: number) => {
-        if (!isUnifiedConnected) {
+        if (!isConnected) {
             setTxState({ status: 'error', message: 'Please connect your wallet first.' });
             setTimeout(() => setTxState({ status: 'idle', message: '' }), 3000);
             return;
@@ -49,7 +48,7 @@ export default function SectionArena() {
 
         setTxState({ status: 'pending', message: 'Awaiting wallet confirmation...' });
 
-        const result = await playMiningEngineGame({ isHCConnected, w3mProvider, hcSessionData }, wager, gameType, prediction);
+        const result = await playMiningEngineGame(wager, gameType, prediction);
 
         if (result.success) {
             setTxState({ status: 'success', message: `Transaction Successful! Hash: ${result.hash?.substring(0, 10)}...` });

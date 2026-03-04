@@ -1,0 +1,19 @@
+﻿8bfcb00 fix(config): update metadata url to match primary vercel domain for HashConnect security
+3991b8d fix(web3): use supported openPairingModal from HashConnect v3
+8268f7f feat(web3): integrate native HashConnect dual-context to force HashPack extension popup without QR fallback
+c0e2df2 refactor(web3): downgrade AppKit to Web3Modal v3 to restore legacy HashPack/Blade desktop detection UI
+a2bba3a fix(web3): apply metadata sync, Hedera adapter priority, Buffer polyfill, and default network to fix Hashpack extension connection
+3148a09 feat(web3): force desktop categorization for Hedera wallets via customWallets
+30b27e6 feat(web3): add HashPack explicitly to featured wallets in AppKit
+8dff3eb docs: update production link in README to hashplay-ai.vercel.app
+c77e5d5 feat(web3): finalize AppKit wallet connectivity, mirror node integration, and deploy smart contract Engine
+6f83dbe Revert Hashconnect context to resolve Vite build failures
+04a3aac Mint  Ecosystem Token and add genesis scripts
+30e39f3 Remove react-parallax-tilt to stop cards following mouse
+eebad63 Refactor to Universal Fluid Layout and multi-section narrative Hero
+896bb93 Fix scroll drift on mobile and desktop by locking global layout
+4a087e6 Refactor to Three.js Water mesh with procedural raindrops and lock arena layout
+feda872 Refactor to Refractive Caustics shader with GSAP transitions and Tilt.js cards
+f85857d Refine typography casing and move navigation to top
+d69e6e0 Migrate to Tailwind CSS v4 for Vercel deployment fix
+94ac74d Initial commit: Hashplay AI visual interface
