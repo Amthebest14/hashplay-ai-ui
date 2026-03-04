@@ -23,7 +23,7 @@ const hederaTestnet = {
 export const metadata = {
     name: 'Hashplay AI',
     description: 'AI-Powered On-Chain Gaming Arena on Hedera',
-    url: 'https://hashplay-ai-ui.vercel.app/', // MUST EXACTLY MATCH LIVE URL FOR HASHPACK SECURITY
+    url: 'https://hashplay-ai.vercel.app/', // MUST EXACTLY MATCH LIVE URL FOR HASHPACK SECURITY
     icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 
