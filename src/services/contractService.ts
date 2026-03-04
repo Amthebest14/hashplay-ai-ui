@@ -47,9 +47,7 @@ export async function associateTokenTransaction(tokenId: string) {
  *   For Coin: 1 (Heads), 2 (Tails)
  */
 export async function playMiningEngineGame(
-    wagerAmount: number,
-    gameType: number,
-    prediction: number
+    wagerAmount: number
 ) {
     // Ensure wallet is connected
     const provider = appKit.getWalletProvider();
@@ -68,8 +66,8 @@ export async function playMiningEngineGame(
         // Convert HBAR wager to tinybars/wei equivalent (18 decimals for EVM compatibility on Hedera)
         const valueToSend = parseEther(wagerAmount.toString());
 
-        // Send the transaction to the play function with static gas limit covering HBAR transfer + PRNG + HTS
-        const tx = await contract.play(gameType, prediction, { value: valueToSend, gasLimit: 800000 });
+        // Send the transaction to the playGame function with static gas limit
+        const tx = await contract.playGame(valueToSend, { gasLimit: 800000 });
 
         // Wait for the transaction to be mined (included in a block)
         const receipt = await tx.wait();

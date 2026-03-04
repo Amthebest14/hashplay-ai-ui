@@ -166,7 +166,7 @@ export default function SectionArena() {
         }, 15000);
 
         try {
-            const result = await playMiningEngineGame(wager, gameType, prediction);
+            const result = await playMiningEngineGame(wager);
             clearTimeout(congestionTimer);
 
             if (result.success) {
