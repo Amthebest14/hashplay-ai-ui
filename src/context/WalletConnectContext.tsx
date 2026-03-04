@@ -39,7 +39,6 @@ const metadata = {
     icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 
-// Create the AppKit instance with EthersAdapter
 export const appKit = createAppKit({
     adapters: [new EthersAdapter()],
     networks: [hederaTestnet],
@@ -47,7 +46,13 @@ export const appKit = createAppKit({
     projectId,
     features: {
         analytics: true
-    }
+    },
+    // Pin important Hedera Native Wallets to the front page
+    featuredWalletIds: [
+        '1ddc8119eb4ee7d65698b3d881510e1f38aca167905d4f10738e4df5e2fbdd21', // HashPack
+    ],
+    // Force them to show up on the modal alongside the default injected ones
+    allWallets: 'SHOW'
 })
 
 export function WalletConnectProvider({ children }: { children: React.ReactNode }) {
