@@ -17,7 +17,7 @@ function WaterSurface({ speedLevel }: { speedLevel: number }) {
                 uTime: { value: 0 },
                 uColor: { value: new THREE.Color('#00C16E') },
                 uMouse: { value: new THREE.Vector2(0, 0) },
-                uDrops: { value: [] }, // Array of drop data: vec3(x, y, timeSinceDrop)
+                uDrops: { value: Array(10).fill(new THREE.Vector3(0, 0, 0)) }, // Array of drop data: vec3(x, y, timeSinceDrop)
                 uDropsCount: { value: 0 },
                 tReflectionMap: { value: null } // Mirror refraction Map
             },
@@ -106,8 +106,12 @@ function WaterSurface({ speedLevel }: { speedLevel: number }) {
 
             // Format for shader uniform vec3(x, y, time)
             const shaderDrops = activeDrops.map(d => new THREE.Vector3(d.x, d.y, d.time));
+            // Pad the array to ensure it always has 10 elements for the WebGL uniform size
+            while (shaderDrops.length < 10) {
+                shaderDrops.push(new THREE.Vector3(0, 0, 0));
+            }
             waterMaterial.uniforms.uDrops.value = shaderDrops;
-            waterMaterial.uniforms.uDropsCount.value = shaderDrops.length;
+            waterMaterial.uniforms.uDropsCount.value = activeDrops.length;
         }
     });
 

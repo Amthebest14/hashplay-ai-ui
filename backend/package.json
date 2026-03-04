@@ -1,0 +1,21 @@
+{
+    "name": "hashplay-engine",
+    "version": "1.0.0",
+    "description": "Smart contract backend for Hashplay AI",
+    "type": "commonjs",
+    "main": "index.js",
+    "scripts": {
+        "compile": "hardhat compile",
+        "deploy": "hardhat run scripts/deploy_engine.ts --network hederaTestnet"
+    },
+    "devDependencies": {
+        "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+        "@openzeppelin/contracts": "^5.6.1",
+        "dotenv": "^16.6.1",
+        "hardhat": "^2.28.6"
+    },
+    "dependencies": {
+        "ethers": "^6.16.0",
+        "solc": "^0.8.34"
+    }
+}

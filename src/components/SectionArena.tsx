@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { RoundedBox, Text } from '@react-three/drei';
+import { playMiningEngineGame } from '../services/contractService';
+import { useAppKitAccount } from '@reown/appkit/react';
 
 function DiceMock({ position }: { position: [number, number, number] }) {
     return (
@@ -28,8 +30,47 @@ export default function SectionArena() {
     const [wager, setWager] = useState<number>(0);
     const wagerOptions = [5, 10, 25, 50, 100, 500];
 
+    const { isConnected } = useAppKitAccount();
+    const [txState, setTxState] = useState<{ status: 'idle' | 'pending' | 'success' | 'error', message: string }>({ status: 'idle', message: '' });
+
+    const handlePlayGame = async (gameType: number, prediction: number) => {
+        if (!isConnected) {
+            setTxState({ status: 'error', message: 'Please connect your wallet first.' });
+            setTimeout(() => setTxState({ status: 'idle', message: '' }), 3000);
+            return;
+        }
+
+        if (wager <= 0) {
+            setTxState({ status: 'error', message: 'Please enter a valid wager amount.' });
+            setTimeout(() => setTxState({ status: 'idle', message: '' }), 3000);
+            return;
+        }
+
+        setTxState({ status: 'pending', message: 'Awaiting wallet confirmation...' });
+
+        const result = await playMiningEngineGame(wager, gameType, prediction);
+
+        if (result.success) {
+            setTxState({ status: 'success', message: `Transaction Successful! Hash: ${result.hash?.substring(0, 10)}...` });
+        } else {
+            setTxState({ status: 'error', message: result.error || 'Transaction failed.' });
+        }
+
+        setTimeout(() => setTxState({ status: 'idle', message: '' }), 5000);
+    };
+
     return (
-        <div className="w-full min-h-[100dvh] flex flex-col items-center justify-center pt-24 pb-12">
+        <div className="w-full min-h-[100dvh] flex flex-col items-center justify-center pt-24 pb-12 relative">
+            {/* Transaction Feedback Toast */}
+            {txState.status !== 'idle' && (
+                <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-xl shadow-2xl transition-all ${txState.status === 'pending' ? 'bg-black/80 border border-white/20 text-white' :
+                    txState.status === 'success' ? 'bg-hedera-green/90 border border-hedera-green text-black font-semibold' :
+                        'bg-red-500/90 border border-red-400 text-white font-semibold'
+                    }`}>
+                    <p className="text-sm tracking-widest">{txState.message}</p>
+                </div>
+            )}
+
             <div className="w-[95%] max-w-[800px] flex flex-col gap-8 py-4">
                 {/* Wager Global Interface */}
                 <div className="glass-panel p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6">
@@ -82,9 +123,10 @@ export default function SectionArena() {
                             </div>
 
                             <div className="grid grid-cols-3 gap-3 relative z-10">
-                                {['Lower', 'Equal', 'Higher'].map((choice) => (
+                                {['Lower', 'Equal', 'Higher'].map((choice, idx) => (
                                     <button
                                         key={choice}
+                                        onClick={() => handlePlayGame(1, idx + 1)}
                                         className="glass-panel py-3 min-h-[44px] rounded-xl text-sm tracking-widest hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:scale-[1.05] transition-all"
                                     >
                                         {choice}
@@ -111,9 +153,10 @@ export default function SectionArena() {
                             </div>
 
                             <div className="grid grid-cols-2 gap-3 relative z-10">
-                                {['Heads', 'Tails'].map((choice) => (
+                                {['Heads', 'Tails'].map((choice, idx) => (
                                     <button
                                         key={choice}
+                                        onClick={() => handlePlayGame(2, idx + 1)}
                                         className="glass-panel py-3 min-h-[44px] rounded-xl text-sm tracking-widest hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:scale-[1.05] transition-all"
                                     >
                                         {choice}
