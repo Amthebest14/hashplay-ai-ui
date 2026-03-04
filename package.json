@@ -17,6 +17,7 @@
     "@reown/appkit-adapter-ethers": "^1.8.18",
     "@reown/appkit-ui": "^1.8.18",
     "@tailwindcss/vite": "^4.2.1",
+    "buffer": "^6.0.3",
     "dotenv": "^17.3.1",
     "ethers": "^6.16.0",
     "framer-motion": "^12.34.5",
