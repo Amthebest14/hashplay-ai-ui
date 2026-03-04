@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { RoundedBox, Text } from '@react-three/drei';
 import { playMiningEngineGame } from '../services/contractService';
-import { useAppKitAccount } from '@reown/appkit/react';
+import { useWeb3ModalAccount, useWeb3ModalProvider } from '@web3modal/ethers/react';
 
 function DiceMock({ position }: { position: [number, number, number] }) {
     return (
@@ -30,7 +30,8 @@ export default function SectionArena() {
     const [wager, setWager] = useState<number>(0);
     const wagerOptions = [5, 10, 25, 50, 100, 500];
 
-    const { isConnected } = useAppKitAccount();
+    const { isConnected } = useWeb3ModalAccount();
+    const { walletProvider } = useWeb3ModalProvider();
     const [txState, setTxState] = useState<{ status: 'idle' | 'pending' | 'success' | 'error', message: string }>({ status: 'idle', message: '' });
 
     const handlePlayGame = async (gameType: number, prediction: number) => {
@@ -48,7 +49,7 @@ export default function SectionArena() {
 
         setTxState({ status: 'pending', message: 'Awaiting wallet confirmation...' });
 
-        const result = await playMiningEngineGame(wager, gameType, prediction);
+        const result = await playMiningEngineGame(walletProvider, wager, gameType, prediction);
 
         if (result.success) {
             setTxState({ status: 'success', message: `Transaction Successful! Hash: ${result.hash?.substring(0, 10)}...` });

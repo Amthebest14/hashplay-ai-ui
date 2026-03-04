@@ -1,5 +1,5 @@
 import { BrowserProvider, Contract, parseEther } from 'ethers';
-import { appKit } from '../context/WalletConnectContext';
+
 import HashplayMiningEngine from '../contracts/HashplayMiningEngine.json';
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_MINING_ENGINE_ADDRESS;
@@ -13,19 +13,19 @@ const CONTRACT_ADDRESS = import.meta.env.VITE_MINING_ENGINE_ADDRESS;
  *   For Coin: 1 (Heads), 2 (Tails)
  */
 export async function playMiningEngineGame(
+    provider: any,
     wagerAmount: number,
     gameType: number,
     prediction: number
 ) {
     // Ensure wallet is connected
-    const provider = appKit.getWalletProvider();
     if (!provider) {
-        throw new Error("Wallet not connected. Please connect via AppKit.");
+        throw new Error("Wallet not connected. Please connect via Web3Modal.");
     }
 
     try {
-        // Create an ethers provider using the AppKit injected EIP1193 provider
-        const ethersProvider = new BrowserProvider(provider as any);
+        // Create an ethers provider using the Web3Modal injected EIP1193 provider
+        const ethersProvider = new BrowserProvider(provider);
         const signer = await ethersProvider.getSigner();
 
         // Initialize the contract connected to the user's signer

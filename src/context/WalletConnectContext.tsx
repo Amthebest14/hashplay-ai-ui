@@ -1,6 +1,4 @@
-import { createAppKit } from '@reown/appkit/react'
-import { EthersAdapter } from '@reown/appkit-adapter-ethers'
-import { defineChain } from '@reown/appkit/networks'
+import { createWeb3Modal, defaultConfig } from '@web3modal/ethers/react';
 import React from 'react';
 
 // Get Project ID from .env
@@ -10,28 +8,16 @@ if (!projectId) {
     console.error("Missing VITE_WALLETCONNECT_PROJECT_ID in environment variables");
 }
 
-// Set up Hedera Testnet (Chain ID: 296)
-const hederaTestnet = defineChain({
-    id: 296,
-    caipNetworkId: 'eip155:296',
-    chainNamespace: 'eip155',
+// 2. Set chains
+const hederaTestnet = {
+    chainId: 296,
     name: 'Hedera Testnet',
-    nativeCurrency: {
-        decimals: 18,
-        name: 'HBAR',
-        symbol: 'HBAR',
-    },
-    rpcUrls: {
-        default: {
-            http: ['https://testnet.hashio.io/api'],
-        },
-    },
-    blockExplorers: {
-        default: { name: 'Hashscan', url: 'https://hashscan.io/testnet' },
-    },
-})
+    currency: 'HBAR',
+    explorerUrl: 'https://hashscan.io/testnet',
+    rpcUrl: 'https://testnet.hashio.io/api'
+};
 
-// Create a metadata object
+// 3. Create a metadata object
 const metadata = {
     name: 'Hashplay AI',
     description: 'AI-Powered On-Chain Gaming Arena on Hedera',
@@ -39,15 +25,26 @@ const metadata = {
     icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 
-export const appKit = createAppKit({
-    adapters: [new EthersAdapter()], // Hedera ethers adapter prioritized
-    networks: [hederaTestnet],
-    defaultNetwork: hederaTestnet, // Lock to Hedera Testnet
+// 4. Create Ethers config
+const ethersConfig = defaultConfig({
     metadata,
+    enableEIP6963: true,
+    enableInjected: true,
+    enableCoinbase: false,
+    rpcUrl: 'https://testnet.hashio.io/api',
+    defaultChainId: 296
+});
+
+// 5. Create Web3Modal instance
+createWeb3Modal({
+    ethersConfig,
+    chains: [hederaTestnet],
     projectId,
-    features: {
-        analytics: true
-    },
+    enableAnalytics: true,
+    themeMode: 'dark',
+    featuredWalletIds: [
+        '1ddc8119eb4ee7d65698b3d881510e1f38aca167905d4f10738e4df5e2fbdd21', // HashPack
+    ],
     customWallets: [
         {
             id: '1ddc8119eb4ee7d65698b3d881510e1f38aca167905d4f10738e4df5e2fbdd21',
@@ -74,14 +71,8 @@ export const appKit = createAppKit({
             desktop_link: 'https://kabila.app/',
             mobile_link: 'kabila://',
         }
-    ],
-    // Pin important Hedera Native Wallets to the front page
-    featuredWalletIds: [
-        '1ddc8119eb4ee7d65698b3d881510e1f38aca167905d4f10738e4df5e2fbdd21', // HashPack
-    ],
-    // Force them to show up on the modal alongside the default injected ones
-    allWallets: 'SHOW'
-})
+    ]
+});
 
 export function WalletConnectProvider({ children }: { children: React.ReactNode }) {
     return <>{children}</>;

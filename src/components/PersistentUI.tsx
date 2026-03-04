@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useAppKitAccount } from '@reown/appkit/react'
+import { useWeb3ModalAccount } from '@web3modal/ethers/react';
 import { getAccountBalances } from '../services/mirrorNodeService';
 
 export default function PersistentUI() {
-    const { address, isConnected } = useAppKitAccount();
+    const { address, isConnected } = useWeb3ModalAccount();
     const [balances, setBalances] = useState({ hbar: 0, hashplay: 0 });
 
     useEffect(() => {
@@ -59,9 +59,10 @@ export default function PersistentUI() {
                         </div>
                     </div>
 
-                    {/* AppKit Connect Button */}
+                    {/* AppKit/Web3Modal Connect Button */}
                     <div className="pointer-events-auto flex items-center shadow-lg">
-                        <appkit-button />
+                        {/* @ts-ignore */}
+                        <w3m-button />
                     </div>
                 </div>
             </header>
