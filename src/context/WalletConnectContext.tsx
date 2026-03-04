@@ -121,7 +121,14 @@ export function WalletConnectProvider({ children }: { children: React.ReactNode 
     }, []);
 
     const connectHashConnect = async () => {
-        hashconnect.connectToLocalWallet();
+        try {
+            console.log("Triggering HashConnect openPairingModal...");
+            await hashconnect.openPairingModal();
+            console.log("HashConnect modal resolved.");
+        } catch (error: any) {
+            console.error("HashConnect Connection Error:", error);
+            alert(`HashConnect Failed: ${error?.message || error}`);
+        }
     };
 
     const disconnectHashConnect = async () => {
