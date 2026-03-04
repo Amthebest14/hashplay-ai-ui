@@ -1,4 +1,4 @@
-import { BrowserProvider, Contract, parseEther } from 'ethers';
+import { BrowserProvider, Contract, parseEther, getAddress } from 'ethers';
 import { appKit } from '../context/WalletConnectContext';
 import HashplayMiningEngine from '../contracts/HashplayMiningEngine.json';
 
@@ -22,8 +22,9 @@ export async function associateTokenTransaction(tokenId: string) {
         const signer = await ethersProvider.getSigner();
         const userAddress = await signer.getAddress();
 
-        // Convert Hedera Token ID (0.0.x) to EVM address
-        const tokenEvmAddress = '0x' + TokenId.fromString(tokenId).toSolidityAddress();
+        // Convert Hedera Token ID (0.0.x) to EVM address and apply strict EIP-55 Checksum formatting
+        const rawTokenEvmAddress = '0x' + TokenId.fromString(tokenId).toSolidityAddress();
+        const tokenEvmAddress = getAddress(rawTokenEvmAddress);
 
         const htsContract = new Contract(HTS_PRECOMPILE, HTS_ABI, signer);
 
