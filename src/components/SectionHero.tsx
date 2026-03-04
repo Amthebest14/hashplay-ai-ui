@@ -1,6 +1,20 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { getTotalMined } from '../services/mirrorNodeService';
 
 export default function SectionHero({ onEnterArena }: { onEnterArena: () => void }) {
+    const [totalMined, setTotalMined] = useState<number>(0);
+
+    useEffect(() => {
+        const fetchMined = async () => {
+            const mined = await getTotalMined();
+            setTotalMined(mined);
+        };
+        fetchMined();
+        window.addEventListener('refreshBalances', fetchMined);
+        return () => window.removeEventListener('refreshBalances', fetchMined);
+    }, []);
+
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -23,6 +37,13 @@ export default function SectionHero({ onEnterArena }: { onEnterArena: () => void
                     <p className="text-white/70 tracking-widest max-w-2xl text-base md:text-lg">
                         The future of play is <span className="text-[var(--color-hedera-green)]">liquid</span>. Mine $HASHPLAY through every wager on the Hedera Network.
                     </p>
+
+                    <div className="flex flex-col items-center gap-2 mt-2 mb-4 glass-panel px-8 py-4 rounded-3xl border border-hedera-green/30 shadow-[0_0_20px_rgba(0,193,110,0.15)] backdrop-blur-md">
+                        <span className="text-white/50 text-xs tracking-widest uppercase">Total $HASHPLAY Mined</span>
+                        <span className="text-4xl md:text-5xl font-light text-[var(--color-hedera-green)]">
+                            {totalMined.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </span>
+                    </div>
 
                     <button
                         onClick={onEnterArena}

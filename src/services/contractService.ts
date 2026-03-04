@@ -2,7 +2,41 @@ import { BrowserProvider, Contract, parseEther } from 'ethers';
 import { appKit } from '../context/WalletConnectContext';
 import HashplayMiningEngine from '../contracts/HashplayMiningEngine.json';
 
+import { TokenId } from '@hashgraph/sdk';
 const CONTRACT_ADDRESS = import.meta.env.VITE_MINING_ENGINE_ADDRESS;
+const HTS_PRECOMPILE = '0x0000000000000000000000000000000000000167';
+
+const HTS_ABI = [
+    "function associateToken(address account, address token) external returns (int64 responseCode)"
+];
+
+/**
+ * Associates the connected wallet with a Hedera token via the HTS precompile.
+ */
+export async function associateTokenTransaction(tokenId: string) {
+    const provider = appKit.getWalletProvider();
+    if (!provider) throw new Error("Wallet not connected.");
+
+    try {
+        const ethersProvider = new BrowserProvider(provider as any);
+        const signer = await ethersProvider.getSigner();
+        const userAddress = await signer.getAddress();
+
+        // Convert Hedera Token ID (0.0.x) to EVM address
+        const tokenEvmAddress = '0x' + TokenId.fromString(tokenId).toSolidityAddress();
+
+        const htsContract = new Contract(HTS_PRECOMPILE, HTS_ABI, signer);
+
+        // Associate token (Gas limit 800000 is enough for association)
+        const tx = await htsContract.associateToken(userAddress, tokenEvmAddress, { gasLimit: 800000 });
+        const receipt = await tx.wait();
+
+        return { success: true, hash: receipt.hash };
+    } catch (error: any) {
+        console.error("Token association failed:", error);
+        return { success: false, error: error.message || "Association rejected." };
+    }
+}
 
 /**
  * Executes a game transaction on the HashplayMiningEngine smart contract.
@@ -34,16 +68,37 @@ export async function playMiningEngineGame(
         // Convert HBAR wager to tinybars/wei equivalent (18 decimals for EVM compatibility on Hedera)
         const valueToSend = parseEther(wagerAmount.toString());
 
-        // Send the transaction to the play function
-        const tx = await contract.play(gameType, prediction, { value: valueToSend });
+        // Send the transaction to the play function with static gas limit covering HBAR transfer + PRNG + HTS
+        const tx = await contract.play(gameType, prediction, { value: valueToSend, gasLimit: 800000 });
 
         // Wait for the transaction to be mined (included in a block)
         const receipt = await tx.wait();
 
+        // Check if transaction took longer than expected (Module 5 timeout check can be done in UI, but we parse logs here)
+        let won = false;
+        let payout = 0n;
+
+        for (const log of receipt.logs) {
+            try {
+                const parsedLog = contract.interface.parseLog({
+                    topics: log.topics as string[],
+                    data: log.data
+                });
+                if (parsedLog?.name === 'GamePlayed') {
+                    won = parsedLog.args.won;
+                    payout = parsedLog.args.payout;
+                    break;
+                }
+            } catch (e) {
+                // Ignore parsing errors for other logs
+            }
+        }
+
         return {
             success: true,
             hash: receipt.hash,
-            // You can parse logs here to determine the exact outcome if needed
+            won,
+            payout
         };
 
     } catch (error: any) {

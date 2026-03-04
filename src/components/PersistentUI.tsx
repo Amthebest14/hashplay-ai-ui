@@ -1,10 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAppKitAccount } from '@reown/appkit/react'
 import { getAccountBalances } from '../services/mirrorNodeService';
+import gsap from 'gsap';
 
 export default function PersistentUI() {
     const { address, isConnected } = useAppKitAccount();
     const [balances, setBalances] = useState({ hbar: 0, hashplay: 0 });
+    const displayRef = useRef({ hbar: 0, hashplay: 0 });
+    const [renderBalances, setRenderBalances] = useState({ hbar: 0, hashplay: 0 });
+
+    useEffect(() => {
+        gsap.to(displayRef.current, {
+            hbar: balances.hbar,
+            hashplay: balances.hashplay,
+            duration: 1.5,
+            ease: "power2.out",
+            onUpdate: () => {
+                setRenderBalances({
+                    hbar: displayRef.current.hbar,
+                    hashplay: displayRef.current.hashplay
+                });
+            }
+        });
+    }, [balances]);
 
     useEffect(() => {
         let interval: NodeJS.Timeout;
@@ -23,10 +41,12 @@ export default function PersistentUI() {
         if (isConnected) {
             // Poll every 10 seconds for balance updates
             interval = setInterval(fetchBalances, 10000);
+            window.addEventListener('refreshBalances', fetchBalances);
         }
 
         return () => {
             if (interval) clearInterval(interval);
+            window.removeEventListener('refreshBalances', fetchBalances);
         };
     }, [address, isConnected]);
 
@@ -51,11 +71,11 @@ export default function PersistentUI() {
                     <div className={`pointer-events-auto flex items-center transition-all duration-500 overflow-hidden ${isConnected ? 'opacity-100 max-w-xs' : 'opacity-0 max-w-0'} gap-1 sm:gap-2 glass-panel rounded-full p-1 border border-white/10 shadow-lg`}>
                         <div className="flex flex-col text-right px-2 py-1 sm:px-3 sm:py-1 bg-black/20 rounded-full">
                             <span className="hidden sm:inline text-[10px] sm:text-xs text-white/50">HBAR</span>
-                            <span className="text-xs sm:text-sm">{balances.hbar.toFixed(2)}</span>
+                            <span className="text-xs sm:text-sm">{renderBalances.hbar.toFixed(2)}</span>
                         </div>
                         <div className="flex flex-col text-right px-2 py-1 sm:px-3 sm:py-1 bg-black/20 rounded-full">
                             <span className="hidden sm:inline text-[10px] sm:text-xs text-[var(--color-hedera-green)]/50">$HASH</span>
-                            <span className="text-xs sm:text-sm text-[var(--color-hedera-green)]">{balances.hashplay.toFixed(0)}</span>
+                            <span className="text-xs sm:text-sm text-[var(--color-hedera-green)]">{renderBalances.hashplay.toFixed(0)}</span>
                         </div>
                     </div>
 
