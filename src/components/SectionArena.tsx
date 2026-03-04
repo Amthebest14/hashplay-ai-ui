@@ -109,7 +109,9 @@ export default function SectionArena() {
         gameType: 0,
         diceResult: [1, 6],
         coinResult: 1,
-        outcome: null as 'win' | 'mine' | null
+        outcome: null as 'win' | 'mine' | null,
+        selectedDice: null as number | null,
+        selectedCoin: null as number | null
     });
 
     useEffect(() => {
@@ -136,9 +138,16 @@ export default function SectionArena() {
         setTimeout(() => setTxState({ status: 'idle', message: '' }), 5000);
     };
 
-    const handlePlayGame = async (gameType: number, prediction: number) => {
+    const handlePlayGame = async (gameType: number) => {
         if (!isConnected) {
             setTxState({ status: 'error', message: 'Please connect your wallet first.' });
+            setTimeout(() => setTxState({ status: 'idle', message: '' }), 3000);
+            return;
+        }
+
+        const prediction = gameType === 1 ? gameState.selectedDice : gameState.selectedCoin;
+        if (!prediction) {
+            setTxState({ status: 'error', message: 'Please select a prediction first.' });
             setTimeout(() => setTxState({ status: 'idle', message: '' }), 3000);
             return;
         }
@@ -173,7 +182,9 @@ export default function SectionArena() {
                     gameType,
                     diceResult: diceRes,
                     coinResult: coinRes,
-                    outcome: result.won ? 'win' : 'mine'
+                    outcome: result.won ? 'win' : 'mine',
+                    selectedDice: gameState.selectedDice,
+                    selectedCoin: gameState.selectedCoin
                 });
 
                 const msg = result.won
@@ -275,13 +286,31 @@ export default function SectionArena() {
                                 </Canvas>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-3 relative z-10">
-                                {['Lower', 'Equal', 'Higher'].map((choice, idx) => (
-                                    <button key={choice} disabled={!isAssociated || gameState.isSpinning} onClick={() => handlePlayGame(1, idx + 1)}
-                                        className={`glass-panel py-3 min-h-[44px] rounded-xl text-sm tracking-widest transition-all ${isAssociated && !gameState.isSpinning ? 'hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:scale-[1.05]' : 'opacity-50 cursor-not-allowed'
-                                            }`} >{choice}</button>
-                                ))}
+                            <div className="grid grid-cols-3 gap-3 relative z-10 mb-4">
+                                {['Lower', 'Equal', 'Higher'].map((choice, idx) => {
+                                    const predValue = idx + 1;
+                                    const isSelected = gameState.selectedDice === predValue;
+                                    return (
+                                        <button key={choice} disabled={!isAssociated || gameState.isSpinning}
+                                            onClick={() => setGameState(prev => ({ ...prev, selectedDice: predValue }))}
+                                            className={`glass-panel py-3 min-h-[44px] rounded-xl text-sm tracking-widest transition-all ${!isAssociated || gameState.isSpinning ? 'opacity-50 cursor-not-allowed' :
+                                                isSelected ? 'bg-hedera-green text-black font-semibold shadow-[0_0_15px_rgba(0,193,110,0.4)] scale-105' :
+                                                    'hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:scale-[1.05]'
+                                                }`} >{choice}</button>
+                                    );
+                                })}
                             </div>
+
+                            <button
+                                disabled={!isAssociated || gameState.isSpinning || !gameState.selectedDice}
+                                onClick={() => handlePlayGame(1)}
+                                className={`w-full py-4 rounded-xl font-bold tracking-widest transition-all uppercase ${!isAssociated || gameState.isSpinning || !gameState.selectedDice
+                                    ? 'bg-white/10 text-white/40 cursor-not-allowed'
+                                    : 'bg-hedera-green text-black shadow-[0_0_20px_rgba(0,193,110,0.5)] hover:scale-[1.02]'
+                                    }`}
+                            >
+                                {gameState.isSpinning ? 'Rolling...' : 'Roll'}
+                            </button>
                         </div>
                     </div>
 
@@ -307,13 +336,31 @@ export default function SectionArena() {
                                 </Canvas>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3 relative z-10">
-                                {['Heads', 'Tails'].map((choice, idx) => (
-                                    <button key={choice} disabled={!isAssociated || gameState.isSpinning} onClick={() => handlePlayGame(2, idx + 1)}
-                                        className={`glass-panel py-3 min-h-[44px] rounded-xl text-sm tracking-widest transition-all ${isAssociated && !gameState.isSpinning ? 'hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:scale-[1.05]' : 'opacity-50 cursor-not-allowed'
-                                            }`}>{choice}</button>
-                                ))}
+                            <div className="grid grid-cols-2 gap-3 relative z-10 mb-4">
+                                {['Heads', 'Tails'].map((choice, idx) => {
+                                    const predValue = idx + 1;
+                                    const isSelected = gameState.selectedCoin === predValue;
+                                    return (
+                                        <button key={choice} disabled={!isAssociated || gameState.isSpinning}
+                                            onClick={() => setGameState(prev => ({ ...prev, selectedCoin: predValue }))}
+                                            className={`glass-panel py-3 min-h-[44px] rounded-xl text-sm tracking-widest transition-all ${!isAssociated || gameState.isSpinning ? 'opacity-50 cursor-not-allowed' :
+                                                isSelected ? 'bg-[var(--color-electric-cyan)] text-black font-semibold shadow-[0_0_15px_rgba(0,242,255,0.4)] scale-105' :
+                                                    'hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:scale-[1.05]'
+                                                }`}>{choice}</button>
+                                    );
+                                })}
                             </div>
+
+                            <button
+                                disabled={!isAssociated || gameState.isSpinning || !gameState.selectedCoin}
+                                onClick={() => handlePlayGame(2)}
+                                className={`w-full py-4 rounded-xl font-bold tracking-widest transition-all uppercase ${!isAssociated || gameState.isSpinning || !gameState.selectedCoin
+                                    ? 'bg-white/10 text-white/40 cursor-not-allowed'
+                                    : 'bg-[var(--color-electric-cyan)] text-black shadow-[0_0_20px_rgba(0,242,255,0.5)] hover:scale-[1.02]'
+                                    }`}
+                            >
+                                {gameState.isSpinning ? 'Flipping...' : 'Flip'}
+                            </button>
                         </div>
                     </div>
                 </div>
