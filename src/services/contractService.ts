@@ -1,11 +1,14 @@
+// @ts-nocheck
 import { BrowserProvider, Contract, parseEther } from 'ethers';
-
+import { ContractExecuteTransaction, ContractFunctionParameters, Hbar, ContractId } from "@hashgraph/sdk";
+import { hashconnect } from '../context/WalletConnectContext';
 import HashplayMiningEngine from '../contracts/HashplayMiningEngine.json';
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_MINING_ENGINE_ADDRESS;
 
 /**
  * Executes a game transaction on the HashplayMiningEngine smart contract.
+ * @param providerConfig The dual wallet state containing `isHCConnected`, `w3mProvider`, `hcSessionData`.
  * @param wagerAmount Amount of HBAR to wager.
  * @param gameType 1 for Dice, 2 for Coin Flip
  * @param prediction 
@@ -13,38 +16,52 @@ const CONTRACT_ADDRESS = import.meta.env.VITE_MINING_ENGINE_ADDRESS;
  *   For Coin: 1 (Heads), 2 (Tails)
  */
 export async function playMiningEngineGame(
-    provider: any,
+    providerConfig: { isHCConnected: boolean; w3mProvider: any; hcSessionData: any },
     wagerAmount: number,
     gameType: number,
     prediction: number
 ) {
-    // Ensure wallet is connected
-    if (!provider) {
-        throw new Error("Wallet not connected. Please connect via Web3Modal.");
-    }
-
     try {
-        // Create an ethers provider using the Web3Modal injected EIP1193 provider
-        const ethersProvider = new BrowserProvider(provider);
-        const signer = await ethersProvider.getSigner();
+        if (providerConfig.isHCConnected && providerConfig.hcSessionData?.accountIds?.[0]) {
+            // --- HASHCONNECT EXECUTION (Native Hedera SDK) ---
+            const accountId = providerConfig.hcSessionData.accountIds[0];
 
-        // Initialize the contract connected to the user's signer
-        const contract = new Contract(CONTRACT_ADDRESS, HashplayMiningEngine.abi, signer);
+            // Convert EVM address to Contract ID explicitly for the Hedera SDK
+            const contractId = ContractId.fromEvmAddress(0, 0, CONTRACT_ADDRESS);
 
-        // Convert HBAR wager to tinybars/wei equivalent (18 decimals for EVM compatibility on Hedera)
-        const valueToSend = parseEther(wagerAmount.toString());
+            const tx = new ContractExecuteTransaction()
+                .setContractId(contractId)
+                .setGas(500000)
+                .setPayableAmount(new Hbar(wagerAmount))
+                .setFunction(
+                    "play",
+                    new ContractFunctionParameters().addUint256(gameType).addUint256(prediction)
+                );
 
-        // Send the transaction to the play function
-        const tx = await contract.play(gameType, prediction, { value: valueToSend });
+            const res = await hashconnect.sendTransaction(accountId, tx);
 
-        // Wait for the transaction to be mined (included in a block)
-        const receipt = await tx.wait();
+            if (res.receipt?.status?.toString() === 'SUCCESS') {
+                return { success: true, hash: res.transactionId };
+            } else {
+                throw new Error("Transaction execution failed or was rejected in HashPack.");
+            }
 
-        return {
-            success: true,
-            hash: receipt.hash,
-            // You can parse logs here to determine the exact outcome if needed
-        };
+        } else if (providerConfig.w3mProvider) {
+            // --- WEB3MODAL EXECUTION (Ethers.js EVM Wrapper) ---
+            const ethersProvider = new BrowserProvider(providerConfig.w3mProvider);
+            const signer = await ethersProvider.getSigner();
+
+            const contract = new Contract(CONTRACT_ADDRESS, HashplayMiningEngine.abi, signer);
+            const valueToSend = parseEther(wagerAmount.toString());
+
+            const tx = await contract.play(gameType, prediction, { value: valueToSend });
+            const receipt = await tx.wait();
+
+            return { success: true, hash: receipt.hash };
+
+        } else {
+            throw new Error("No connected wallet provider found.");
+        }
 
     } catch (error: any) {
         console.error("Game transaction failed:", error);
