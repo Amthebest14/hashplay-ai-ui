@@ -3,7 +3,7 @@ import { appKit } from '../context/WalletConnectContext';
 import HashplayMiningEngine from '../contracts/HashplayMiningEngine.json';
 
 import { TokenId } from '@hashgraph/sdk';
-const CONTRACT_ADDRESS = import.meta.env.VITE_MINING_ENGINE_ADDRESS;
+const CONTRACT_ADDRESS = getAddress(import.meta.env.VITE_MINING_ENGINE_ADDRESS);
 const HTS_PRECOMPILE = '0x0000000000000000000000000000000000000167';
 
 const HTS_ABI = [
