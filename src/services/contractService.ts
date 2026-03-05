@@ -1,6 +1,6 @@
 import { BrowserProvider, Contract, parseEther, getAddress } from 'ethers';
 import { appKit } from '../context/WalletConnectContext';
-import HashplayMiningEngine from '../contracts/HashplayMiningEngine.json';
+import HashplayGame from '../contracts/HashplayGame.json';
 
 import { TokenId } from '@hashgraph/sdk';
 const HTS_PRECOMPILE = '0x0000000000000000000000000000000000000167';
@@ -60,25 +60,24 @@ export async function playMiningEngineGame(
         const ethersProvider = new BrowserProvider(provider as any);
         const signer = await ethersProvider.getSigner();
 
-        // Enforce proper EIP-55 Match Checksum on the remote contract address safely at execution
-        // We must lowercase the env variable first because getAddress throws if it detects invalid mixed casing
+        // Enforce proper EIP-55 Match Checksum at execution time
         const contractEvmAddress = getAddress(import.meta.env.VITE_MINING_ENGINE_ADDRESS.toLowerCase());
 
         // Initialize the contract connected to the user's signer
-        const contract = new Contract(contractEvmAddress, HashplayMiningEngine.abi, signer);
+        const contract = new Contract(contractEvmAddress, HashplayGame.abi, signer);
 
-        // Convert HBAR wager to tinybars/wei equivalent (18 decimals for EVM compatibility on Hedera)
+        // Convert HBAR wager to wei (18 decimals for EVM on Hedera)
         const valueToSend = parseEther(wagerAmount.toString());
 
-        // Send the transaction to the playGame function with static gas limit
-        const tx = await contract.playGame(valueToSend, { gasLimit: 800000 });
+        // Call the payable play() function, sending HBAR as the wager
+        const tx = await contract.play({ value: valueToSend, gasLimit: 800000 });
 
-        // Wait for the transaction to be mined (included in a block)
+        // Wait for the transaction to be mined
         const receipt = await tx.wait();
 
-        // Check if transaction took longer than expected (Module 5 timeout check can be done in UI, but we parse logs here)
         let won = false;
         let payout = 0n;
+        let hashplayReward = 0n;
 
         for (const log of receipt.logs) {
             try {
@@ -86,9 +85,10 @@ export async function playMiningEngineGame(
                     topics: log.topics as string[],
                     data: log.data
                 });
-                if (parsedLog?.name === 'GamePlayed') {
+                if (parsedLog?.name === 'GameResult') {
                     won = parsedLog.args.won;
-                    payout = parsedLog.args.payout;
+                    payout = parsedLog.args.hbarPayout;
+                    hashplayReward = parsedLog.args.hashplayReward;
                     break;
                 }
             } catch (e) {
@@ -100,7 +100,8 @@ export async function playMiningEngineGame(
             success: true,
             hash: receipt.hash,
             won,
-            payout
+            payout,
+            hashplayReward
         };
 
     } catch (error: any) {
