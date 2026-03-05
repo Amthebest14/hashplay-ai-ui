@@ -3,11 +3,7 @@ pragma solidity ^0.8.20;
 
 interface IHTS {
     function transferToken(address token, address sender, address recipient, int64 amount) external returns (int64 responseCode);
-}
-
-interface IERC20 {
-    function transfer(address to, uint256 amount) external returns (bool);
-    function balanceOf(address account) external view returns (uint256);
+    function associateToken(address account, address token) external returns (int64 responseCode);
 }
 
 /**
@@ -19,6 +15,7 @@ interface IERC20 {
 contract HashplayGame {
     address public owner;
     address public hashplayToken; // $HASHPLAY ERC20/HTS token address
+    address constant HTS_PRECOMPILE = address(0x167);
 
     event GameResult(
         address indexed player,
@@ -80,14 +77,35 @@ contract HashplayGame {
 
     /**
      * @dev Transfer $HASHPLAY tokens from this contract to the player.
+     *      Uses the HTS Precompile directly because $HASHPLAY is a native
+     *      Hedera Token Service token, NOT a standard ERC20 — calling
+     *      IERC20.transfer() on HTS tokens silently fails/returns 0.
+     *      HTS SUCCESS response code is 22.
      */
     function _sendHashplay(address to, uint256 amount) internal {
-        IERC20 token = IERC20(hashplayToken);
-        uint256 contractBalance = token.balanceOf(address(this));
-        if (contractBalance >= amount) {
-            token.transfer(to, amount);
+        if (amount == 0) return;
+
+        // Cast amount to int64 for HTS (HTS uses int64 for token amounts)
+        // amount here is in 8-decimal units (e.g., 500e8 for 500 tokens)
+        int64 htsAmount = int64(int256(amount));
+
+        (bool success, bytes memory result) = HTS_PRECOMPILE.call(
+            abi.encodeWithSignature(
+                "transferToken(address,address,address,int64)",
+                hashplayToken,    // token
+                address(this),    // sender (the contract itself)
+                to,               // recipient (the player)
+                htsAmount         // amount in smallest unit
+            )
+        );
+
+        // If the call fails, emit won't block the game — we still finish gracefully
+        if (success && result.length >= 32) {
+            int64 responseCode = abi.decode(result, (int64));
+            // 22 = SUCCESS in HTS. Any other code means silent skip.
+            // We don't revert so the game outcome is always recorded.
+            require(responseCode == 22, "HTS: Token transfer failed");
         }
-        // If insufficient token balance, skip gracefully (don't block the game)
     }
 
     /**
@@ -110,6 +128,15 @@ contract HashplayGame {
 
     function updateToken(address _newToken) external onlyOwner {
         hashplayToken = _newToken;
+    }
+
+    function selfAssociate() external {
+        (bool success, bytes memory result) = HTS_PRECOMPILE.call(
+            abi.encodeWithSignature("associateToken(address,address)", address(this), hashplayToken)
+        );
+        require(success, "Association call failed");
+        int64 responseCode = abi.decode(result, (int64));
+        require(responseCode == 22, "HTS: Association failed"); // 22 is SUCCESS in HTS response
     }
 
     receive() external payable {}

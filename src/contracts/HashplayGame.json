@@ -1,5 +1,5 @@
 {
-  "address": "0xDf0765E451fA616FAfDfF7008E35d6369bc9E771",
+  "address": "0x3dFbaE03D03461683b4A5173C45D7CC8Cb5754dC",
   "abi": [
     {
       "inputs": [
@@ -91,6 +91,13 @@
       "name": "play",
       "outputs": [],
       "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "selfAssociate",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
