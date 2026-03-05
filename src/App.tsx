@@ -5,6 +5,8 @@ import PersistentUI from './components/PersistentUI';
 import SectionHero from './components/SectionHero';
 import SectionArena from './components/SectionArena';
 import SectionLeaderboard from './components/SectionLeaderboard';
+import { NotificationProvider } from './context/NotificationContext';
+import NotificationToast from './components/NotificationToast';
 
 function App() {
   const [currentSection, setCurrentSection] = useState<'home' | 'arena' | 'leaderboard'>('home');
@@ -53,49 +55,53 @@ function App() {
   };
 
   return (
-    <div className="w-full min-h-screen relative overflow-hidden text-white font-inter selection:bg-hedera-green/30 selection:text-white">
-      {/* Persistant Shader Background */}
-      <BackgroundShader speedLevel={bgSpeed} />
+    <NotificationProvider>
+      <div className="w-full min-h-screen relative overflow-hidden text-white font-inter selection:bg-hedera-green/30 selection:text-white">
+        {/* Persistant Shader Background */}
+        <BackgroundShader speedLevel={bgSpeed} />
 
-      {/* Main App Container Overlay */}
-      <div className="relative z-10 w-full min-h-screen flex flex-col">
-        {/* Persistent UI Components */}
-        <PersistentUI />
+        {/* Main App Container Overlay */}
+        <div className="relative z-10 w-full min-h-screen flex flex-col">
+          {/* Persistent UI Components */}
+          <PersistentUI />
 
-        {/* Dynamic Section Content via GSAP */}
-        <main className="w-full pointer-events-auto">
-          <div ref={mainContainerRef} className="w-full flex justify-center items-start">
-            {currentSection === 'home' && <SectionHero onEnterArena={() => navigateTo('arena')} />}
-            {currentSection === 'arena' && <SectionArena />}
-            {currentSection === 'leaderboard' && <SectionLeaderboard />}
-          </div>
-        </main>
+          {/* Dynamic Section Content via GSAP */}
+          <main className="w-full pointer-events-auto">
+            <div ref={mainContainerRef} className="w-full flex justify-center items-start">
+              {currentSection === 'home' && <SectionHero onEnterArena={() => navigateTo('arena')} />}
+              {currentSection === 'arena' && <SectionArena />}
+              {currentSection === 'leaderboard' && <SectionLeaderboard />}
+            </div>
+          </main>
 
-        {/* Minimalist Floating Navigation Menu */}
-        <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 glass-panel rounded-full px-8 py-3 flex gap-8 items-center z-50 shadow-2xl transition-all duration-500">
-          <button
-            onClick={() => navigateTo('home')}
-            className={`tracking-widest transition-colors duration-300 ${currentSection === 'home' ? 'text-hedera-green drop-shadow-[0_0_8px_rgba(0,193,110,0.8)]' : 'text-white/40 hover:text-white'}`}
-          >
-            Home
-          </button>
-          <div className="w-px h-4 bg-white/20" />
-          <button
-            onClick={() => navigateTo('arena')}
-            className={`tracking-widest transition-colors duration-300 ${currentSection === 'arena' ? 'text-hedera-green drop-shadow-[0_0_8px_rgba(0,193,110,0.8)]' : 'text-white/40 hover:text-white'}`}
-          >
-            Arena
-          </button>
-          <div className="w-px h-4 bg-white/20" />
-          <button
-            onClick={() => navigateTo('leaderboard')}
-            className={`tracking-widest transition-colors duration-300 ${currentSection === 'leaderboard' ? 'text-hedera-green drop-shadow-[0_0_8px_rgba(0,193,110,0.8)]' : 'text-white/40 hover:text-white'}`}
-          >
-            Ranks
-          </button>
-        </nav>
+          {/* Minimalist Floating Navigation Menu */}
+          <nav className="fixed top-28 md:top-6 left-1/2 -translate-x-1/2 glass-panel rounded-full px-8 py-3 flex gap-8 items-center z-50 shadow-2xl transition-all duration-500">
+            <button
+              onClick={() => navigateTo('home')}
+              className={`tracking-widest transition-colors duration-300 ${currentSection === 'home' ? 'text-hedera-green drop-shadow-[0_0_8px_rgba(0,193,110,0.8)]' : 'text-white/40 hover:text-white'}`}
+            >
+              Home
+            </button>
+            <div className="w-px h-4 bg-white/20" />
+            <button
+              onClick={() => navigateTo('arena')}
+              className={`tracking-widest transition-colors duration-300 ${currentSection === 'arena' ? 'text-hedera-green drop-shadow-[0_0_8px_rgba(0,193,110,0.8)]' : 'text-white/40 hover:text-white'}`}
+            >
+              Arena
+            </button>
+            <div className="w-px h-4 bg-white/20" />
+            <button
+              onClick={() => navigateTo('leaderboard')}
+              className={`tracking-widest transition-colors duration-300 ${currentSection === 'leaderboard' ? 'text-hedera-green drop-shadow-[0_0_8px_rgba(0,193,110,0.8)]' : 'text-white/40 hover:text-white'}`}
+            >
+              Ranks
+            </button>
+          </nav>
+        </div>
+
+        <NotificationToast />
       </div>
-    </div>
+    </NotificationProvider>
   );
 }
 

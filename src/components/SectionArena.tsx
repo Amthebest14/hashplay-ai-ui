@@ -6,6 +6,7 @@ import { getAccountBalances } from '../services/mirrorNodeService';
 import { useAppKitAccount } from '@reown/appkit/react';
 import { formatEther } from 'ethers';
 import gsap from 'gsap';
+import { useNotification } from '../context/NotificationContext';
 
 function getDeterministicResult(txHash: string, gameType: number, prediction: number, won: boolean) {
     const hashNum = parseInt(txHash.slice(2, 10), 16) || 12345;
@@ -101,6 +102,7 @@ export default function SectionArena() {
     const wagerOptions = [5, 10, 25, 50, 100, 500];
 
     const { address, isConnected } = useAppKitAccount();
+    const { notify } = useNotification();
     const [txState, setTxState] = useState<{ status: 'idle' | 'pending' | 'success' | 'error', message: string }>({ status: 'idle', message: '' });
     const [isAssociated, setIsAssociated] = useState<boolean>(true);
 
@@ -187,9 +189,11 @@ export default function SectionArena() {
                     selectedCoin: gameState.selectedCoin
                 });
 
-                const msg = result.won
-                    ? `WINNER! Payout: ${formatEther(result.payout || 0)} HBAR`
-                    : `MINED! You received $HASHPLAY tokens.`;
+                if (result.won) {
+                    notify('win', 'Big win! Your HBAR payout is on the way to your wallet.', `${formatEther(result.payout || 0)} HBAR`);
+                } else {
+                    notify('mine', 'Mining complete. $HASHPLAY tokens have been sent to your account.', '500 $HASHPLAY');
+                }
 
                 setTxState({ status: 'success', message: msg });
 
@@ -203,7 +207,9 @@ export default function SectionArena() {
             clearTimeout(congestionTimer);
             setGameState(prev => ({ ...prev, isSpinning: false }));
             const isRejected = e.message?.toLowerCase().includes('reject');
-            setTxState({ status: 'error', message: isRejected ? 'Transaction Cancelled' : e.message || 'Transaction rejected.' });
+            const errorMsg = isRejected ? 'Transaction Cancelled' : e.message || 'Transaction rejected.';
+            setTxState({ status: 'error', message: errorMsg });
+            notify('error', errorMsg);
         }
 
         setTimeout(() => {
