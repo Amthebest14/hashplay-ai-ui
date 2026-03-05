@@ -72,7 +72,7 @@ function App() {
         </main>
 
         {/* Minimalist Floating Navigation Menu */}
-        <nav className="fixed top-6 left-1/2 -translate-x-1/2 glass-panel rounded-full px-8 py-3 flex gap-8 items-center z-50 shadow-2xl">
+        <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 glass-panel rounded-full px-8 py-3 flex gap-8 items-center z-50 shadow-2xl transition-all duration-500">
           <button
             onClick={() => navigateTo('home')}
             className={`tracking-widest transition-colors duration-300 ${currentSection === 'home' ? 'text-hedera-green drop-shadow-[0_0_8px_rgba(0,193,110,0.8)]' : 'text-white/40 hover:text-white'}`}

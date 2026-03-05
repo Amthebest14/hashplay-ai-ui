@@ -80,12 +80,25 @@ export async function getTotalMined(): Promise<number> {
 export async function getTopHolders(limit: number = 25): Promise<LeaderboardEntry[]> {
     try {
         const hashplayTokenId = import.meta.env.VITE_HASHPLAY_TOKEN_ID;
-        const response = await fetch(`${HEDERA_TESTNET_MIRROR}/tokens/${hashplayTokenId}/balances?limit=${limit}&order=desc`);
+        const treasuryId = import.meta.env.VITE_TREASURY_ACCOUNT_ID;
+        // Game Contract Hedera ID: 0.0.8091335
+        const contractId = "0.0.8091335";
+
+        const response = await fetch(`${HEDERA_TESTNET_MIRROR}/tokens/${hashplayTokenId}/balances?limit=50&order=desc`);
         if (!response.ok) return [];
 
         const data = await response.json();
 
-        return data.balances.map((b: any) => ({
+        // Filter out Treasury, the Token itself, and the Game Contract to show only active players
+        const filteredHolders = data.balances
+            .filter((b: any) =>
+                b.account !== treasuryId &&
+                b.account !== hashplayTokenId &&
+                b.account !== contractId
+            )
+            .slice(0, limit);
+
+        return filteredHolders.map((b: any) => ({
             account: b.account,
             balance: b.balance / 1e8 // Adjust for token decimals (8 for $HASHPLAY)
         }));
