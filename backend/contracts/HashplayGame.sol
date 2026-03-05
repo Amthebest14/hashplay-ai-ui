@@ -20,9 +20,6 @@ contract HashplayGame {
     address public owner;
     address public hashplayToken; // $HASHPLAY ERC20/HTS token address
 
-    uint256 public constant WIN_HASHPLAY_REWARD  = 500 * 1e8; // 500 tokens (8 decimals)
-    uint256 public constant LOSE_HASHPLAY_REWARD = 200 * 1e8; // 200 tokens (8 decimals)
-
     event GameResult(
         address indexed player,
         uint256 wager,
@@ -64,12 +61,15 @@ contract HashplayGame {
         if (won) {
             // Win: return 2x wager in HBAR
             hbarPayout = msg.value * 2;
-            hashplayReward = WIN_HASHPLAY_REWARD;
+            // 500 tokens per 1 HBAR (1 HBAR = 10^18, $HASHPLAY = 10^8)
+            // msg.value * 500 / 10^10 = tokens with 8 decimals
+            hashplayReward = (msg.value * 500) / 1e10;
             require(address(this).balance >= hbarPayout, "Insufficient contract balance for payout");
             payable(msg.sender).transfer(hbarPayout);
         } else {
             // Lose: keep HBAR, give consolation tokens
-            hashplayReward = LOSE_HASHPLAY_REWARD;
+            // 200 tokens per 1 HBAR
+            hashplayReward = (msg.value * 200) / 1e10;
         }
 
         // Transfer $HASHPLAY reward regardless of outcome

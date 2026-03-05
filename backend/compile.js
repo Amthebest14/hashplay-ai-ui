@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const solc = require('solc');
 
-const contractPath = path.resolve(__dirname, 'contracts', 'HashplayMiningEngine.sol');
+const contractPath = path.resolve(__dirname, 'contracts', 'HashplayGame.sol');
 const source = fs.readFileSync(contractPath, 'utf8');
 
 function findImports(importPath) {
@@ -18,7 +18,7 @@ function findImports(importPath) {
 const input = {
     language: 'Solidity',
     sources: {
-        'HashplayMiningEngine.sol': {
+        'HashplayGame.sol': {
             content: source,
         },
     },
@@ -41,7 +41,7 @@ if (compiled.errors) {
     }
 }
 
-const contract = compiled.contracts['HashplayMiningEngine.sol']['HashplayMiningEngine'];
+const contract = compiled.contracts['HashplayGame.sol']['HashplayGame'];
 
 const output = {
     abi: contract.abi,
@@ -49,8 +49,8 @@ const output = {
 };
 
 fs.writeFileSync(
-    path.resolve(__dirname, 'HashplayMiningEngine.json'),
+    path.resolve(__dirname, 'HashplayGame.json'),
     JSON.stringify(output, null, 2)
 );
 
-console.log('Contract compiled successfully to HashplayMiningEngine.json');
+console.log('Contract compiled successfully to HashplayGame.json');

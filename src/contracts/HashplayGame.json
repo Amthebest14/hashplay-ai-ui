@@ -1,5 +1,5 @@
 {
-  "address": "0x34784BD5c6ec6eF811b1CE2Be564a7Eb60fA5Acb",
+  "address": "0xDf0765E451fA616FAfDfF7008E35d6369bc9E771",
   "abi": [
     {
       "inputs": [
@@ -52,32 +52,6 @@
     {
       "stateMutability": "payable",
       "type": "fallback"
-    },
-    {
-      "inputs": [],
-      "name": "LOSE_HASHPLAY_REWARD",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "WIN_HASHPLAY_REWARD",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
     },
     {
       "inputs": [],

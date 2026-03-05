@@ -24,7 +24,7 @@ async function main() {
     const wallet = new ethers.Wallet(operatorKey, provider);
 
     // Load compiled contract
-    const contractJsonPath = path.resolve(__dirname, 'HashplayMiningEngine.json');
+    const contractJsonPath = path.resolve(__dirname, 'HashplayGame.json');
     const { abi, bytecode } = JSON.parse(fs.readFileSync(contractJsonPath, 'utf8'));
 
     // Deploy contract
@@ -32,13 +32,13 @@ async function main() {
     const factory = new ethers.ContractFactory(abi, bytecode, wallet);
 
     // Deploy with constructor arguments
-    const contract = await factory.deploy(tokenEvmAddress, treasuryEvmAddress);
+    const contract = await factory.deploy(tokenEvmAddress);
 
     console.log(`Waiting for deployment transaction ${contract.deploymentTransaction().hash}...`);
     await contract.waitForDeployment();
 
     const deployedAddress = await contract.getAddress();
-    console.log(`\n✅ HashplayMiningEngine deployed to: ${deployedAddress}`);
+    console.log(`\n✅ HashplayGame deployed to: ${deployedAddress}`);
 
     // Save the ABI and Address for the frontend to use
     const frontendOutput = {
@@ -46,7 +46,7 @@ async function main() {
         abi: abi
     };
 
-    const frontendPath = path.resolve(__dirname, '..', 'src', 'contracts', 'HashplayMiningEngine.json');
+    const frontendPath = path.resolve(__dirname, '..', 'src', 'contracts', 'HashplayGame.json');
     fs.mkdirSync(path.dirname(frontendPath), { recursive: true });
     fs.writeFileSync(frontendPath, JSON.stringify(frontendOutput, null, 2));
 
