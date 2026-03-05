@@ -61,7 +61,8 @@ export async function playMiningEngineGame(
         const signer = await ethersProvider.getSigner();
 
         // Enforce proper EIP-55 Match Checksum on the remote contract address safely at execution
-        const contractEvmAddress = getAddress(import.meta.env.VITE_MINING_ENGINE_ADDRESS);
+        // We must lowercase the env variable first because getAddress throws if it detects invalid mixed casing
+        const contractEvmAddress = getAddress(import.meta.env.VITE_MINING_ENGINE_ADDRESS.toLowerCase());
 
         // Initialize the contract connected to the user's signer
         const contract = new Contract(contractEvmAddress, HashplayMiningEngine.abi, signer);
