@@ -29,20 +29,24 @@ export interface LeaderboardEntry {
  */
 export async function getAccountBalances(accountId: string): Promise<{ hbar: number, hashplay: number, isAssociated: boolean }> {
     try {
-        const response = await fetch(`${HEDERA_TESTNET_MIRROR}/accounts/${accountId}`);
-        if (!response.ok) return { hbar: 0, hashplay: 0, isAssociated: false };
-
-        const data: AccountInfo = await response.json();
-
-        const hbarBalance = data.balance.balance / 100000000; // tinybars to HBAR
-
         const hashplayTokenId = import.meta.env.VITE_HASHPLAY_TOKEN_ID;
-        // Check if the token exists internally in the user's token array (even with 0 balance)
-        const hashplayRecord = data.balance.tokens.find(t => t.token_id === hashplayTokenId);
-        const isAssociated = !!hashplayRecord;
 
+        // Fetch HBAR balance from the main account endpoint
+        const accountResponse = await fetch(`${HEDERA_TESTNET_MIRROR}/accounts/${accountId}`);
+        if (!accountResponse.ok) return { hbar: 0, hashplay: 0, isAssociated: false };
+        const accountData: AccountInfo = await accountResponse.json();
+        const hbarBalance = accountData.balance.balance / 100000000; // tinybars to HBAR
+
+        // Fetch the specific $HASHPLAY token balance from the dedicated tokens endpoint
+        // This is more reliable than reading from the limited balance.tokens array
+        const tokenResponse = await fetch(`${HEDERA_TESTNET_MIRROR}/accounts/${accountId}/tokens?token.id=${hashplayTokenId}&limit=1`);
+        if (!tokenResponse.ok) return { hbar: hbarBalance, hashplay: 0, isAssociated: false };
+        const tokenData = await tokenResponse.json();
+
+        const tokenRecord = tokenData.tokens?.[0];
+        const isAssociated = !!tokenRecord;
         // $HASHPLAY has 8 decimals
-        const hashplayBalance = hashplayRecord ? hashplayRecord.balance / 1e8 : 0;
+        const hashplayBalance = tokenRecord ? tokenRecord.balance / 1e8 : 0;
 
         return { hbar: hbarBalance, hashplay: hashplayBalance, isAssociated };
     } catch (error) {
