@@ -189,17 +189,19 @@ export default function SectionArena() {
                     selectedCoin: gameState.selectedCoin
                 });
 
-                const msg = result.won
-                    ? `WINNER! Payout: ${formatEther(result.payout || 0)} HBAR`
-                    : `MINED! You received $HASHPLAY tokens.`;
-
+                let outcomeMsg = '';
                 if (result.won) {
-                    notify('win', 'Big win! Your HBAR payout is on the way to your wallet.', `${formatEther(result.payout || 0)} HBAR`);
+                    const hbarAmount = formatEther(result.payout || 0);
+                    const hashAmount = (Number(result.hashplayReward || 0) / 1e8).toLocaleString();
+                    outcomeMsg = `WINNER! Payout: ${hbarAmount} HBAR`;
+                    notify('win', `Big win! ${hbarAmount} HBAR payout and ${hashAmount} $HASHPLAY tokens are arriving.`, `${hbarAmount} HBAR`);
                 } else {
-                    notify('mine', 'Mining complete. $HASHPLAY tokens have been sent to your account.', '500 $HASHPLAY');
+                    const hashAmount = (Number(result.hashplayReward || 0) / 1e8).toLocaleString();
+                    outcomeMsg = `MINED! Consolation: ${hashAmount} $HASHPLAY`;
+                    notify('mine', `Mining complete. You received ${hashAmount} consolation $HASHPLAY tokens.`, `${hashAmount} $HASHPLAY`);
                 }
 
-                setTxState({ status: 'success', message: msg });
+                setTxState({ status: 'success', message: outcomeMsg });
 
                 window.dispatchEvent(new Event('refreshBalances'));
             } else {
