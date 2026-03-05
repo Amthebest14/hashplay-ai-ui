@@ -3,7 +3,6 @@ import { appKit } from '../context/WalletConnectContext';
 import HashplayMiningEngine from '../contracts/HashplayMiningEngine.json';
 
 import { TokenId } from '@hashgraph/sdk';
-const CONTRACT_ADDRESS = import.meta.env.VITE_MINING_ENGINE_ADDRESS;
 const HTS_PRECOMPILE = '0x0000000000000000000000000000000000000167';
 
 const HTS_ABI = [
@@ -61,8 +60,11 @@ export async function playMiningEngineGame(
         const ethersProvider = new BrowserProvider(provider as any);
         const signer = await ethersProvider.getSigner();
 
+        // Enforce proper EIP-55 Match Checksum on the remote contract address safely at execution
+        const contractEvmAddress = getAddress(import.meta.env.VITE_MINING_ENGINE_ADDRESS);
+
         // Initialize the contract connected to the user's signer
-        const contract = new Contract(CONTRACT_ADDRESS, HashplayMiningEngine.abi, signer);
+        const contract = new Contract(contractEvmAddress, HashplayMiningEngine.abi, signer);
 
         // Convert HBAR wager to tinybars/wei equivalent (18 decimals for EVM compatibility on Hedera)
         const valueToSend = parseEther(wagerAmount.toString());
