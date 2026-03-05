@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotification } from '../context/NotificationContext';
-import { Pickaxe, Trophy, AlertCircle, Info } from 'lucide-react';
+import { Hammer, Award, AlertCircle } from 'lucide-react';
 import gsap from 'gsap';
 
 export default function NotificationToast() {
@@ -47,8 +47,8 @@ function ToastItem({ notification, onRemove }: { notification: any, onRemove: ()
         >
             <div className="flex gap-4 items-start">
                 <div className={`p-2 rounded-xl bg-black/40 ${isWin ? 'text-electric-cyan' : isMine ? 'text-hedera-green' : 'text-red-400'}`}>
-                    {isWin && <Trophy size={20} />}
-                    {isMine && <Pickaxe size={20} />}
+                    {isWin && <Award size={20} />}
+                    {isMine && <Hammer size={20} />}
                     {isError && <AlertCircle size={20} />}
                 </div>
 

@@ -189,6 +189,10 @@ export default function SectionArena() {
                     selectedCoin: gameState.selectedCoin
                 });
 
+                const msg = result.won
+                    ? `WINNER! Payout: ${formatEther(result.payout || 0)} HBAR`
+                    : `MINED! You received $HASHPLAY tokens.`;
+
                 if (result.won) {
                     notify('win', 'Big win! Your HBAR payout is on the way to your wallet.', `${formatEther(result.payout || 0)} HBAR`);
                 } else {
