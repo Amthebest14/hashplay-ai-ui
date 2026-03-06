@@ -4,7 +4,7 @@ import { RoundedBox, Text } from '@react-three/drei';
 import { playMiningEngineGame, associateTokenTransaction } from '../services/contractService';
 import { getAccountBalances } from '../services/mirrorNodeService';
 import { useAppKitAccount } from '@reown/appkit/react';
-import { formatEther, formatUnits } from 'ethers';
+import { formatUnits } from 'ethers';
 import gsap from 'gsap';
 import { useNotification } from '../context/NotificationContext';
 
