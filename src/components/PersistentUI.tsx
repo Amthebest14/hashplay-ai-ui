@@ -56,7 +56,7 @@ export default function PersistentUI() {
                 {/* Faucet Hook */}
                 <div className="pointer-events-auto">
                     <a
-                        href="https://portal.hedera.com/"
+                        href="https://portal.hedera.com/faucet"
                         target="_blank"
                         rel="noreferrer"
                         className="text-white/60 hover:text-hedera-green text-sm tracking-widest transition-colors duration-300"
