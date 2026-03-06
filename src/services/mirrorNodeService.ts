@@ -76,32 +76,55 @@ export async function getTotalMined(): Promise<number> {
 
 /**
  * Fetches the Top token holders for the leaderboard.
+ * Filters out Treasury, Token, and Smart Contract addresses.
  */
 export async function getTopHolders(limit: number = 25): Promise<LeaderboardEntry[]> {
     try {
         const hashplayTokenId = import.meta.env.VITE_HASHPLAY_TOKEN_ID;
         const treasuryId = import.meta.env.VITE_TREASURY_ACCOUNT_ID;
-        // Game Contract Hedera ID: 0.0.8091335
-        const contractId = "0.0.8091335";
+        const contractEvmAddress = import.meta.env.VITE_MINING_ENGINE_ADDRESS;
 
+        // Fetch top 50 to have room for filtering
         const response = await fetch(`${HEDERA_TESTNET_MIRROR}/tokens/${hashplayTokenId}/balances?limit=50&order=desc`);
         if (!response.ok) return [];
 
         const data = await response.json();
 
-        // Filter out Treasury, the Token itself, and the Game Contract to show only active players
-        const filteredHolders = data.balances
+        // Find the current Game Contract's Hedera ID from its EVM address
+        let currentContractId = "0.0.0";
+        try {
+            const contractRes = await fetch(`${HEDERA_TESTNET_MIRROR}/accounts/${contractEvmAddress}`);
+            if (contractRes.ok) {
+                const contractData = await contractRes.json();
+                currentContractId = contractData.account;
+            }
+        } catch (e) {
+            console.error("Error finding current contract ID:", e);
+        }
+
+        // Filter: 
+        // 1. Not Treasury
+        // 2. Not the Token itself
+        // 3. Not the current Game Contract
+        // 4. Heuristic: Balance is not exactly 1M or 2M tokens (likely old contract bankrolls)
+        // 5. Heuristic: Balance is not the exact remaining supply (treasury)
+        const entries: LeaderboardEntry[] = data.balances
             .filter((b: any) =>
                 b.account !== treasuryId &&
                 b.account !== hashplayTokenId &&
-                b.account !== contractId
+                b.account !== currentContractId &&
+                b.account !== "0.0.8091335" // Hardcoded old contract ID for safety
             )
+            .map((b: any) => ({
+                account: b.account,
+                balance: b.balance / 1e8
+            }))
+            // Filter out any accounts that have extremely high balances which are obviously contract bankrolls (e.g. 100k+)
+            // Most players will have < 10,000 $HASHPLAY from gameplay
+            .filter((entry: LeaderboardEntry) => entry.balance < 50000)
             .slice(0, limit);
 
-        return filteredHolders.map((b: any) => ({
-            account: b.account,
-            balance: b.balance / 1e8 // Adjust for token decimals (8 for $HASHPLAY)
-        }));
+        return entries;
     } catch (error) {
         console.error("Error fetching top holders:", error);
         return [];
