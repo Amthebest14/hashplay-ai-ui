@@ -5,7 +5,7 @@ const path = require('path');
 
 async function main() {
     const operatorKey = process.env.HEDERA_OPERATOR_KEY;
-    const contractAddress = "0x3dFbaE03D03461683b4A5173C45D7CC8Cb5754dC";
+    const contractAddress = process.env.VITE_MINING_ENGINE_ADDRESS;
 
     if (!operatorKey || !contractAddress) {
         throw new Error("Missing env vars.");

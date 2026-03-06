@@ -77,34 +77,43 @@ contract HashplayGame {
 
     /**
      * @dev Transfer $HASHPLAY tokens from this contract to the player.
-     *      Uses the HTS Precompile directly because $HASHPLAY is a native
-     *      Hedera Token Service token, NOT a standard ERC20 — calling
-     *      IERC20.transfer() on HTS tokens silently fails/returns 0.
-     *      HTS SUCCESS response code is 22.
+     *      1. First tries to associate the player with the token (HTS requirement).
+     *         Response code 194 = ALREADY_ASSOCIATED which is fine to ignore.
+     *      2. Then transfers using HTS precompile.
+     *      Never reverts — game result is ALWAYS recorded even if the token
+     *      transfer fails (e.g. player unassociated or low balance).
      */
     function _sendHashplay(address to, uint256 amount) internal {
         if (amount == 0) return;
 
-        // Cast amount to int64 for HTS (HTS uses int64 for token amounts)
-        // amount here is in 8-decimal units (e.g., 500e8 for 500 tokens)
+        // Step 1: Try to associate the player's wallet with $HASHPLAY.
+        // This is needed for first-time players.
+        // responseCode 22 = SUCCESS, 194 = ALREADY_ASSOCIATED (both are OK)
+        HTS_PRECOMPILE.call(
+            abi.encodeWithSignature("associateToken(address,address)", to, hashplayToken)
+        );
+        // We intentionally ignore the response — already-associated is fine.
+
+        // Step 2: Transfer tokens using HTS precompile
         int64 htsAmount = int64(int256(amount));
 
         (bool success, bytes memory result) = HTS_PRECOMPILE.call(
             abi.encodeWithSignature(
                 "transferToken(address,address,address,int64)",
-                hashplayToken,    // token
-                address(this),    // sender (the contract itself)
-                to,               // recipient (the player)
-                htsAmount         // amount in smallest unit
+                hashplayToken,
+                address(this),
+                to,
+                htsAmount
             )
         );
 
-        // If the call fails, emit won't block the game — we still finish gracefully
+        // Log result without reverting — game must always complete
+        // If this returns false or a non-22 code, the tokens just aren't sent
+        // but HBAR payout and GameResult event still fire correctly.
         if (success && result.length >= 32) {
-            int64 responseCode = abi.decode(result, (int64));
-            // 22 = SUCCESS in HTS. Any other code means silent skip.
-            // We don't revert so the game outcome is always recorded.
-            require(responseCode == 22, "HTS: Token transfer failed");
+            // int64 responseCode = abi.decode(result, (int64));
+            // We no longer revert here — silent failure is acceptable for tokens
+            // to ensure HBAR winnings are never blocked.
         }
     }
 

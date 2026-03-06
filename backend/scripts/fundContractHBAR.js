@@ -14,9 +14,9 @@ async function main() {
     const provider = new ethers.JsonRpcProvider("https://testnet.hashio.io/api");
     const wallet = new ethers.Wallet(operatorKey, provider);
 
-    const amountToFund = ethers.parseEther("90"); // 90 HBAR
+    const amountToFund = ethers.parseEther("10"); // 10 HBAR
 
-    console.log(`Attempting to transfer 900 HBAR...`);
+    console.log(`Attempting to transfer 10 HBAR...`);
 
     try {
         const tx = await wallet.sendTransaction({
