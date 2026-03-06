@@ -84,8 +84,8 @@ export async function getTopHolders(limit: number = 25): Promise<LeaderboardEntr
         const treasuryId = import.meta.env.VITE_TREASURY_ACCOUNT_ID;
         const contractEvmAddress = import.meta.env.VITE_MINING_ENGINE_ADDRESS;
 
-        // Fetch top 50 to have room for filtering
-        const response = await fetch(`${HEDERA_TESTNET_MIRROR}/tokens/${hashplayTokenId}/balances?limit=50&order=desc`);
+        // Fetch top 100 to have room for filtering out many contracts
+        const response = await fetch(`${HEDERA_TESTNET_MIRROR}/tokens/${hashplayTokenId}/balances?limit=100&order=desc`);
         if (!response.ok) return [];
 
         const data = await response.json();
@@ -106,22 +106,25 @@ export async function getTopHolders(limit: number = 25): Promise<LeaderboardEntr
         // 1. Not Treasury
         // 2. Not the Token itself
         // 3. Not the current Game Contract
-        // 4. Heuristic: Balance is not exactly 1M or 2M tokens (likely old contract bankrolls)
-        // 5. Heuristic: Balance is not the exact remaining supply (treasury)
+        // 4. Not extremely high "contract bankroll" balances (heuristic)
         const entries: LeaderboardEntry[] = data.balances
-            .filter((b: any) =>
-                b.account !== treasuryId &&
-                b.account !== hashplayTokenId &&
-                b.account !== currentContractId &&
-                b.account !== "0.0.8091335" // Hardcoded old contract ID for safety
-            )
             .map((b: any) => ({
                 account: b.account,
                 balance: b.balance / 1e8
             }))
-            // Filter out any accounts that have extremely high balances which are obviously contract bankrolls (e.g. 100k+)
-            // Most players will have < 10,000 $HASHPLAY from gameplay
-            .filter((entry: LeaderboardEntry) => entry.balance < 50000)
+            .filter((entry: LeaderboardEntry) =>
+                entry.account !== treasuryId &&
+                entry.account !== hashplayTokenId &&
+                entry.account !== currentContractId &&
+                entry.account !== "0.0.8091335" && // Old contracts
+                entry.account !== "0.0.8095682" &&
+                entry.account !== "0.0.8095745" &&
+                entry.account !== "0.0.8095658" &&
+                entry.account !== "0.0.8095531" &&
+                entry.account !== "0.0.8095848" &&
+                entry.balance < 50000 // Heuristic: Contracts have massive vaults
+            )
+            .sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.balance - a.balance) // CRITICAL FIX: Explicit sort descending
             .slice(0, limit);
 
         return entries;
