@@ -58,15 +58,17 @@ contract HashplayGame {
         if (won) {
             // Win: return 2x wager in HBAR
             hbarPayout = msg.value * 2;
-            // 500 tokens per 1 HBAR (1 HBAR = 10^18, $HASHPLAY = 10^8)
-            // msg.value * 500 / 10^10 = tokens with 8 decimals
-            hashplayReward = (msg.value * 500) / 1e10;
+            // 500 tokens per 1 HBAR
+            // Since both HBAR and $HASHPLAY have 8 decimals:
+            // hashplayReward = msg.value * 500
+            hashplayReward = msg.value * 500;
             require(address(this).balance >= hbarPayout, "Insufficient contract balance for payout");
-            payable(msg.sender).transfer(hbarPayout);
+            (bool success, ) = payable(msg.sender).call{value: hbarPayout}("");
+            require(success, "HBAR payout failed");
         } else {
             // Lose: keep HBAR, give consolation tokens
             // 200 tokens per 1 HBAR
-            hashplayReward = (msg.value * 200) / 1e10;
+            hashplayReward = msg.value * 200;
         }
 
         // Transfer $HASHPLAY reward regardless of outcome
@@ -128,11 +130,23 @@ contract HashplayGame {
      */
     function withdrawHBAR(uint256 amount) external onlyOwner {
         require(address(this).balance >= amount, "Insufficient balance");
-        payable(owner).transfer(amount);
+        (bool success, ) = payable(owner).call{value: amount}("");
+        require(success, "HBAR withdrawal failed");
     }
 
     function withdrawTokens(uint256 amount) external onlyOwner {
-        IERC20(hashplayToken).transfer(owner, amount);
+        // Use HTS Precompile to transfer tokens back to owner
+        (bool success, bytes memory result) = HTS_PRECOMPILE.call(
+            abi.encodeWithSignature(
+                "transferToken(address,address,int64)",
+                hashplayToken,
+                owner,
+                int64(int256(amount))
+            )
+        );
+        require(success, "Token withdrawal call failed");
+        int32 responseCode = abi.decode(result, (int32));
+        require(responseCode == 22, "HTS: Token withdrawal failed");
     }
 
     function updateToken(address _newToken) external onlyOwner {

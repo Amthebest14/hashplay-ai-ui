@@ -4,7 +4,7 @@ import { RoundedBox, Text } from '@react-three/drei';
 import { playMiningEngineGame, associateTokenTransaction } from '../services/contractService';
 import { getAccountBalances } from '../services/mirrorNodeService';
 import { useAppKitAccount } from '@reown/appkit/react';
-import { formatEther } from 'ethers';
+import { formatEther, formatUnits } from 'ethers';
 import gsap from 'gsap';
 import { useNotification } from '../context/NotificationContext';
 
@@ -191,12 +191,12 @@ export default function SectionArena() {
 
                 let outcomeMsg = '';
                 if (result.won) {
-                    const hbarAmount = formatEther(result.payout || 0);
-                    const hashAmount = (Number(result.hashplayReward || 0) / 1e8).toLocaleString();
+                    const hbarAmount = formatUnits(result.payout || 0, 8);
+                    const hashAmount = formatUnits(result.hashplayReward || 0, 8);
                     outcomeMsg = `WINNER! Payout: ${hbarAmount} HBAR`;
                     notify('win', `Big win! ${hbarAmount} HBAR payout and ${hashAmount} $HASHPLAY tokens are arriving.`, `${hbarAmount} HBAR`);
                 } else {
-                    const hashAmount = (Number(result.hashplayReward || 0) / 1e8).toLocaleString();
+                    const hashAmount = formatUnits(result.hashplayReward || 0, 8);
                     outcomeMsg = `MINED! Consolation: ${hashAmount} $HASHPLAY`;
                     notify('mine', `Mining complete. You received ${hashAmount} consolation $HASHPLAY tokens.`, `${hashAmount} $HASHPLAY`);
                 }
