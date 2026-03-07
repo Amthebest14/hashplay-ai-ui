@@ -283,16 +283,16 @@ export default function SectionArena() {
                             gameState.gameType === 1 && gameState.outcome === 'mine' ? 'border-[#00F2FF] shadow-[0_0_30px_rgba(0,242,255,0.3)]' :
                                 'border-white/10'
                             }`}>
-                            <div className="flex justify-between items-center relative z-10">
+                            <div className="flex justify-between items-center relative z-20">
                                 <h2 className="text-2xl font-light text-white tracking-widest pointer-events-none">Dice Game</h2>
                                 <div className="h-2 w-2 rounded-full bg-hedera-green shadow-[0_0_10px_rgba(0,193,110,0.8)]" />
                             </div>
 
-                            <div className={`flex-1 w-full relative my-6 bg-black/40 rounded-2xl overflow-hidden pointer-events-none border border-white/5 shadow-inner transition-all ${gameState.gameType === 1 && gameState.isSpinning ? 'blur-[2px] opacity-80' : 'blur-0 opacity-100'
+                            <div className={`flex-1 w-full relative my-6 bg-black/40 rounded-2xl overflow-hidden pointer-events-auto border border-white/5 shadow-inner transition-all z-30 ${gameState.gameType === 1 && gameState.isSpinning ? 'blur-[1px] opacity-90' : 'blur-0 opacity-100'
                                 }`}>
-                                <Canvas camera={{ position: [0, 0, 5] }}>
-                                    <ambientLight intensity={0.5} />
-                                    <pointLight position={[10, 10, 10]} intensity={1} />
+                                <Canvas camera={{ position: [0, 0, 5] }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }}>
+                                    <ambientLight intensity={0.8} />
+                                    <pointLight position={[10, 10, 10]} intensity={1.5} />
                                     <DiceMock position={[-1.6, 0, 0]} isSpinning={gameState.gameType === 1 && gameState.isSpinning} result={gameState.diceResult[0]} />
                                     <DiceMock position={[1.6, 0, 0]} isSpinning={gameState.gameType === 1 && gameState.isSpinning} result={gameState.diceResult[1]} />
                                 </Canvas>
@@ -339,11 +339,11 @@ export default function SectionArena() {
                                 <div className="h-2 w-2 rounded-full bg-hedera-green shadow-[0_0_10px_rgba(0,193,110,0.8)]" />
                             </div>
 
-                            <div className={`flex-1 w-full relative my-6 bg-black/40 rounded-2xl overflow-hidden pointer-events-none border border-white/5 shadow-inner transition-all ${gameState.gameType === 2 && gameState.isSpinning ? 'blur-[2px] opacity-80' : 'blur-0 opacity-100'
+                            <div className={`flex-1 w-full relative my-6 bg-black/40 rounded-2xl overflow-hidden pointer-events-auto border border-white/5 shadow-inner transition-all z-30 ${gameState.gameType === 2 && gameState.isSpinning ? 'blur-[1px] opacity-90' : 'blur-0 opacity-100'
                                 }`}>
-                                <Canvas camera={{ position: [0, 0, 5] }}>
-                                    <ambientLight intensity={0.5} />
-                                    <pointLight position={[10, 10, 10]} intensity={1} />
+                                <Canvas camera={{ position: [0, 0, 5] }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }}>
+                                    <ambientLight intensity={0.8} />
+                                    <pointLight position={[10, 10, 10]} intensity={1.5} />
                                     <CoinMock isSpinning={gameState.gameType === 2 && gameState.isSpinning} result={gameState.coinResult} />
                                 </Canvas>
                             </div>
@@ -363,18 +363,68 @@ export default function SectionArena() {
                                 })}
                             </div>
 
-                            <button
-                                disabled={!isAssociated || gameState.isSpinning || !gameState.selectedCoin}
-                                onClick={() => handlePlayGame(2)}
-                                className={`w-full py-4 rounded-xl font-bold tracking-widest transition-all uppercase ${!isAssociated || gameState.isSpinning || !gameState.selectedCoin
-                                    ? 'bg-white/10 text-white/40 cursor-not-allowed'
-                                    : 'bg-[var(--color-electric-cyan)] text-black shadow-[0_0_20px_rgba(0,242,255,0.5)] hover:scale-[1.02]'
-                                    }`}
-                            >
-                                {gameState.isSpinning ? 'Flipping...' : 'Flip'}
-                            </button>
+                            <div className="mt-8 pt-6 border-t border-white/5 flex flex-col gap-4 relative z-10">
+                                <div className="flex justify-between items-center bg-black/30 p-4 rounded-2xl border border-white/5 shadow-inner">
+                                    <div className="flex flex-col">
+                                        <span className="text-white/40 text-[10px] tracking-widest uppercase">Mining Reward</span>
+                                        <span className="text-hedera-green font-bold text-lg">
+                                            {wager ? (wager * 500).toLocaleString() : '0'} $HASH
+                                        </span>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-white/20 text-[10px] block uppercase">Win Rate</span>
+                                        <span className="text-white/60 font-medium">50% Chance</span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => handlePlayGame(2)}
+                                    disabled={gameState.isSpinning || !wager}
+                                    className={`w-full py-4 rounded-2xl font-bold tracking-widest transition-all duration-300 relative overflow-hidden group ${gameState.isSpinning || !wager ? 'bg-white/5 text-white/20 cursor-not-allowed' : 'bg-white text-black hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+                                        }`}>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                                    {gameState.isSpinning ? 'MINING...' : 'FLIP COIN'}
+                                </button>
+                            </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Info Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div className="glass-panel p-6 rounded-2xl border border-white/5 flex flex-col gap-2">
+                    <span className="text-hedera-green/60 text-[10px] tracking-[0.2em] uppercase font-bold">Payouts</span>
+                    <h4 className="text-white font-medium">500 $HASH per Win</h4>
+                    <p className="text-white/40 text-xs">For every 1 HBAR you win, receive 500 $HASHPLAY tokens.</p>
+                </div>
+                <div className="glass-panel p-6 rounded-2xl border border-white/5 flex flex-col gap-2">
+                    <span className="text-red-400/60 text-[10px] tracking-[0.2em] uppercase font-bold">Mining</span>
+                    <h4 className="text-white font-medium">200 $HASH per Loss</h4>
+                    <p className="text-white/40 text-xs">Lose your HBAR? You still mine 200 $HASH per 1 HBAR lost.</p>
+                </div>
+                <div className="glass-panel p-6 rounded-2xl border border-white/5 flex flex-col gap-2 relative group overflow-hidden">
+                    <span className="text-blue-400/60 text-[10px] tracking-[0.2em] uppercase font-bold">Bankroll</span>
+                    <h4 className="text-white font-medium">Community Owned</h4>
+                    <p className="text-white/40 text-xs">The engine is fully funded by the treasury for player rewards.</p>
+
+                    {address?.toLowerCase() === "0x34784bd5c6ec6ef60223700b05b38ed35639f75a" && (
+                        <button
+                            onClick={async () => {
+                                setTxState({ status: 'pending', message: 'Admin Funding: Sending 20M tokens...' });
+                                try {
+                                    // This would trigger the actual transfer from the UI if implemented in contractService
+                                    // But for now it's a UI placeholder or we can use the same associate/transfer logic
+                                    notify("info", "Admin Funding Triggered. Please use your wallet to complete the 20M transfer.");
+                                } catch (e) {
+                                    setTxState({ status: 'error', message: 'Funding failed' });
+                                }
+                            }}
+                            className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 bg-hedera-green/20 text-[8px] text-hedera-green px-2 py-1 rounded border border-hedera-green/30 transition-opacity"
+                        >
+                            FUND 20M
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

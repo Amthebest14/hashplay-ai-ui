@@ -1,7 +1,10 @@
-import { createAppKit } from '@reown/appkit/react'
+import { createAppKit, useAppKitAccount, useAppKitNetwork } from '@reown/appkit/react'
 import { EthersAdapter } from '@reown/appkit-adapter-ethers'
 import { defineChain } from '@reown/appkit/networks'
-import React from 'react';
+import React, { useEffect } from 'react';
+
+// Removed global interface to avoid clashing with existing types.
+// We will use (window as any).ethereum instead.
 
 // Get Project ID from .env
 const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID;
@@ -83,6 +86,57 @@ export const appKit = createAppKit({
     allWallets: 'SHOW'
 })
 
+function NetworkGuard() {
+    const { isConnected } = useAppKitAccount();
+    const { caipNetwork } = useAppKitNetwork();
+
+    useEffect(() => {
+        const checkNetwork = async () => {
+            if (isConnected && (window as any).ethereum && caipNetwork?.id !== 296) {
+                try {
+                    // Try to switch first
+                    await (window as any).ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0x128' }], // 296 in hex
+                    });
+                } catch (switchError: any) {
+                    if (switchError.code === 4902) {
+                        try {
+                            await (window as any).ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [
+                                    {
+                                        chainId: '0x128',
+                                        chainName: 'Hedera Testnet',
+                                        nativeCurrency: {
+                                            name: 'HBAR',
+                                            symbol: 'HBAR',
+                                            decimals: 18,
+                                        },
+                                        rpcUrls: ['https://testnet.hashio.io/api'],
+                                        blockExplorerUrls: ['https://hashscan.io/testnet'],
+                                    },
+                                ],
+                            });
+                        } catch (addError) {
+                            console.error("Failed to add Hedera network", addError);
+                        }
+                    }
+                }
+            }
+        };
+
+        checkNetwork();
+    }, [isConnected, caipNetwork]);
+
+    return null;
+}
+
 export function WalletConnectProvider({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
+    return (
+        <>
+            <NetworkGuard />
+            {children}
+        </>
+    );
 }
