@@ -1,6 +1,5 @@
 import { BrowserProvider, Contract, parseEther, getAddress } from 'ethers';
 import { appKit } from '../context/WalletConnectContext';
-import HashplayGame from '../contracts/HashplayGame.json';
 
 import { TokenId } from '@hashgraph/sdk';
 const HTS_PRECOMPILE = '0x0000000000000000000000000000000000000167';
@@ -47,7 +46,9 @@ export async function associateTokenTransaction(tokenId: string) {
  *   For Coin: 1 (Heads), 2 (Tails)
  */
 export async function playMiningEngineGame(
-    wagerAmount: number
+    wagerAmount: number,
+    gameType: number,
+    prediction: number
 ) {
     // Ensure wallet is connected
     const provider = appKit.getWalletProvider();
@@ -64,13 +65,18 @@ export async function playMiningEngineGame(
         const contractEvmAddress = getAddress(import.meta.env.VITE_MINING_ENGINE_ADDRESS.toLowerCase());
 
         // Initialize the contract connected to the user's signer
-        const contract = new Contract(contractEvmAddress, HashplayGame.abi, signer);
+        // We need to use the V2 ABI/Interface
+        const arenaV2Interface = [
+            "function play(uint8 gameType, uint8 prediction) external payable",
+            "event GameResult(address indexed player, uint8 gameType, uint8 prediction, uint256 wager, bool won, uint256 hbarPayout, uint256 hashplayReward, uint256 rollResult)"
+        ];
+        const contract = new Contract(contractEvmAddress, arenaV2Interface, signer);
 
         // Convert HBAR wager to wei (18 decimals for EVM on Hedera)
         const valueToSend = parseEther(wagerAmount.toString());
 
-        // Call the payable play() function, sending HBAR as the wager
-        const tx = await contract.play({ value: valueToSend, gasLimit: 800000 });
+        // Call the payable play(gameType, prediction) function
+        const tx = await contract.play(gameType, prediction, { value: valueToSend, gasLimit: 1000000 });
 
         // Wait for the transaction to be mined
         const receipt = await tx.wait();
@@ -78,6 +84,7 @@ export async function playMiningEngineGame(
         let won = false;
         let payout = 0n;
         let hashplayReward = 0n;
+        let rollResult = 0n;
 
         for (const log of receipt.logs) {
             try {
@@ -89,6 +96,7 @@ export async function playMiningEngineGame(
                     won = parsedLog.args.won;
                     payout = parsedLog.args.hbarPayout;
                     hashplayReward = parsedLog.args.hashplayReward;
+                    rollResult = parsedLog.args.rollResult;
                     break;
                 }
             } catch (e) {
@@ -101,7 +109,8 @@ export async function playMiningEngineGame(
             hash: receipt.hash,
             won,
             payout,
-            hashplayReward
+            hashplayReward,
+            rollResult
         };
 
     } catch (error: any) {

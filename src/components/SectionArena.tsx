@@ -8,32 +8,6 @@ import { formatUnits } from 'ethers';
 import gsap from 'gsap';
 import { useNotification } from '../context/NotificationContext';
 
-function getDeterministicResult(txHash: string, gameType: number, prediction: number, won: boolean) {
-    const hashNum = parseInt(txHash.slice(2, 10), 16) || 12345;
-    if (gameType === 2) {
-        return won ? prediction : (prediction === 1 ? 2 : 1);
-    }
-    const isLower = prediction === 1;
-    const isEqual = prediction === 2;
-    const isHigher = prediction === 3;
-    let targetSum = 7;
-    if (won) {
-        if (isLower) targetSum = (hashNum % 5) + 2;
-        if (isEqual) targetSum = 7;
-        if (isHigher) targetSum = (hashNum % 5) + 8;
-    } else {
-        if (isLower) targetSum = (hashNum % 6) + 7;
-        if (isEqual) targetSum = (hashNum % 2 === 0) ? ((hashNum % 5) + 2) : ((hashNum % 5) + 8);
-        if (isHigher) targetSum = (hashNum % 6) + 2;
-    }
-    let d1 = (hashNum % 6) + 1;
-    let d2 = targetSum - d1;
-    while (d2 < 1 || d2 > 6) {
-        d1 = (d1 % 6) + 1;
-        d2 = targetSum - d1;
-    }
-    return [d1, d2];
-}
 
 function DiceMock({ position, isSpinning, result }: { position: [number, number, number], isSpinning: boolean, result: number }) {
     const meshRef = useRef<any>(null);
@@ -180,16 +154,40 @@ export default function SectionArena() {
         }, 15000);
 
         try {
-            const result = await playMiningEngineGame(wager);
+            const result = await playMiningEngineGame(wager, gameType, prediction);
             clearTimeout(congestionTimer);
 
             if (result.success) {
-                const results = getDeterministicResult(result.hash!, gameType, prediction, result.won!);
-
-                let diceRes = [1, 6];
+                let diceRes: [number, number] = [1, 6];
                 let coinRes = 1;
-                if (gameType === 1) diceRes = results as [number, number];
-                if (gameType === 2) coinRes = results as number;
+
+                const onChainRoll = Number(result.rollResult);
+
+                if (gameType === 1) {
+                    // Split the sum into two dice
+                    // We can use the same logic as the contract or just a simple split
+                    // Since the contract rolled die1 + die2, we can't know exactly what they were 
+                    // unless we return die1/die2 separately, but we can simulate a valid pair for that sum.
+                    let d1 = Math.floor(onChainRoll / 2);
+                    if (d1 < 1) d1 = 1;
+                    if (d1 > 6) d1 = 6;
+                    let d2 = onChainRoll - d1;
+                    if (d2 > 6) {
+                        d2 = 6;
+                        d1 = onChainRoll - 6;
+                    }
+                    if (d2 < 1) {
+                        d2 = 1;
+                        d1 = onChainRoll - 1;
+                    }
+                    diceRes = [d1, d2];
+                } else {
+                    // Coin Flip
+                    // 1-48 is Heads (1), 53-100 is Tails (2), 49-52 is Edge/Loss
+                    if (onChainRoll <= 48) coinRes = 1;
+                    else if (onChainRoll >= 53) coinRes = 2;
+                    else coinRes = 3; // Special "Edge" state if we had one, but for now just show result
+                }
 
                 setGameState({
                     isSpinning: false,
@@ -407,8 +405,8 @@ export default function SectionArena() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                 <div className="glass-panel p-6 rounded-2xl border border-white/5 flex flex-col gap-2">
                     <span className="text-hedera-green/60 text-[10px] tracking-[0.2em] uppercase font-bold">Payouts</span>
-                    <h4 className="text-white font-medium">500 $HASH per Win</h4>
-                    <p className="text-white/40 text-xs">For every 1 HBAR you win, receive 500 $HASHPLAY tokens.</p>
+                    <h4 className="text-white font-medium">2x Payouts (4x on Equal Dice)</h4>
+                    <p className="text-white/40 text-xs">Standard win gives 2x. Hit a 7 in Dice for a massive 4x payoff!</p>
                 </div>
                 <div className="glass-panel p-6 rounded-2xl border border-white/5 flex flex-col gap-2">
                     <span className="text-red-400/60 text-[10px] tracking-[0.2em] uppercase font-bold">Mining</span>

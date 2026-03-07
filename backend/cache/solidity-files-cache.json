@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\HP\\.gemini\\antigravity\\scratch\\hashplay-ai\\backend\\contracts\\HashplayGame.sol": {
-      "lastModificationDate": 1772707818058,
-      "contentHash": "8219ae16c2fe511a0c7bca7eee929511",
+      "lastModificationDate": 1772794184973,
+      "contentHash": "af38ca0946448e21b47fba9394b51967",
       "sourceName": "contracts/HashplayGame.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -35,7 +35,6 @@
       ],
       "artifacts": [
         "HashplayGame",
-        "IERC20",
         "IHTS"
       ]
     },
@@ -261,6 +260,117 @@
       ],
       "artifacts": [
         "StorageSlot"
+      ]
+    },
+    "C:\\Users\\HP\\.gemini\\antigravity\\scratch\\hashplay-ai\\backend\\contracts\\HashplayArenaV2.sol": {
+      "lastModificationDate": 1772910526127,
+      "contentHash": "0bf9311c34f8dc26d6fd0ba0c28ea495",
+      "sourceName": "contracts/HashplayArenaV2.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/utils/ReentrancyGuard.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "HashplayArenaV2"
+      ]
+    },
+    "C:\\Users\\HP\\.gemini\\antigravity\\scratch\\hashplay-ai\\backend\\contracts\\HashplayWithdraw.sol": {
+      "lastModificationDate": 1772732278759,
+      "contentHash": "9a5a170f4aa424a193a0ac5c9dfb1258",
+      "sourceName": "contracts/HashplayWithdraw.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "HashplayWithdraw"
+      ]
+    },
+    "C:\\Users\\HP\\.gemini\\antigravity\\scratch\\hashplay-ai\\backend\\contracts\\HBARDrainer.sol": {
+      "lastModificationDate": 1772732222829,
+      "contentHash": "1a75cfe6f770c65a41632835831bdca4",
+      "sourceName": "contracts/HBARDrainer.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "HBARDrainer"
       ]
     }
   }
