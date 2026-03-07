@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { RoundedBox, Text } from '@react-three/drei';
+import { RoundedBox, Text, Float } from '@react-three/drei';
 import { playMiningEngineGame, associateTokenTransaction } from '../services/contractService';
 import { getAccountBalances } from '../services/mirrorNodeService';
 import { useAppKitAccount } from '@reown/appkit/react';
@@ -88,12 +88,24 @@ function CoinMock({ isSpinning, result }: { isSpinning: boolean, result: number 
     }, [isSpinning, result]);
 
     return (
-        <mesh ref={meshRef}>
-            <cylinderGeometry args={[1.5, 1.5, 0.2, 32]} />
-            <meshStandardMaterial color="#FFD700" roughness={0.3} metalness={0.8} />
-            <Text position={[0, 0.11, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.4} color="#000">HEADS</Text>
-            <Text position={[0, -0.11, 0]} rotation={[Math.PI / 2, Math.PI, 0]} fontSize={0.4} color="#000">TAILS</Text>
-        </mesh>
+        <Float speed={2} rotationIntensity={1.5} floatIntensity={2}>
+            <group>
+                <mesh ref={meshRef}>
+                    <cylinderGeometry args={[2.2, 2.2, 0.3, 64]} />
+                    <meshStandardMaterial
+                        color="#FFD700"
+                        roughness={0.05}
+                        metalness={1}
+                        emissive="#FFD700"
+                        emissiveIntensity={0.1}
+                    />
+                    <Text position={[0, 0.16, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.5} color="#000">HEADS</Text>
+                    <Text position={[0, -0.16, 0]} rotation={[Math.PI / 2, Math.PI, 0]} fontSize={0.5} color="#000">TAILS</Text>
+                </mesh>
+                <spotLight position={[0, 5, 2]} intensity={50} angle={0.3} penumbra={1} castShadow />
+                <pointLight position={[-2, 2, 2]} intensity={20} color="#ffffff" />
+            </group>
+        </Float>
     );
 }
 
