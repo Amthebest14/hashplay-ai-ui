@@ -45,8 +45,7 @@ if (typeof window !== 'undefined' && !window.global) {
     (window as any).global = window;
 }
 
-// Exported instance for services
-/** @ts-ignore - late init */
+// Global appKit instance
 export let appKit: any;
 
 export function WalletConnectProvider({ children }: { children: React.ReactNode }) {
@@ -56,7 +55,7 @@ export function WalletConnectProvider({ children }: { children: React.ReactNode 
         let isMounted = true;
         async function initAppKit() {
             try {
-                // Initialize the Universal Provider bridge
+                // Initialize the Universal Provider bridge (Required for Hedera bridge)
                 const up = await HederaProvider.init({
                     projectId,
                     metadata,
@@ -64,7 +63,7 @@ export function WalletConnectProvider({ children }: { children: React.ReactNode 
 
                 if (!isMounted) return;
 
-                // Create the AppKit instance
+                // Create the AppKit instance with both namespaces
                 appKit = createAppKit({
                     adapters: [hederaEVMAdapter, hederaNativeAdapter],
                     // @ts-ignore - Bridge to native Hedera wallets
