@@ -3,7 +3,7 @@ import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import { hederaTestnet } from '@reown/appkit/networks'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { http } from 'viem'
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 // Setup queryClient
 const queryClient = new QueryClient()
@@ -32,8 +32,8 @@ export const wagmiAdapter = new WagmiAdapter({
     }
 });
 
-// Initialize AppKit
-export const appKit = createAppKit({
+// Initialize AppKit instance
+export const appKitInstance = createAppKit({
     adapters: [wagmiAdapter],
     networks: [hederaTestnet],
     defaultNetwork: hederaTestnet,

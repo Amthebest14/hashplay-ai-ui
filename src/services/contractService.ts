@@ -1,5 +1,5 @@
 import { BrowserProvider, Contract, parseEther, getAddress } from 'ethers';
-import { appKit } from '../context/WalletConnectContext';
+import { appKitInstance } from '../context/WalletConnectContext';
 
 import { TokenId } from '@hashgraph/sdk';
 const HTS_PRECOMPILE = '0x0000000000000000000000000000000000000167';
@@ -12,7 +12,7 @@ const HTS_ABI = [
  * Associates the connected wallet with a Hedera token via the HTS precompile.
  */
 export async function associateTokenTransaction(tokenId: string) {
-    const provider = appKit.getWalletProvider();
+    const provider = appKitInstance.getWalletProvider();
     if (!provider) throw new Error("Wallet not connected.");
 
     try {
@@ -51,7 +51,7 @@ export async function playMiningEngineGame(
     prediction: number
 ) {
     // Ensure wallet is connected
-    const provider = appKit.getWalletProvider();
+    const provider = appKitInstance.getWalletProvider();
     if (!provider) {
         throw new Error("Wallet not connected. Please connect via AppKit.");
     }
