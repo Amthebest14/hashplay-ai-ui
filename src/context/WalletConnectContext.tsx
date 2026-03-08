@@ -1,9 +1,12 @@
 import { createAppKit, useAppKitAccount, useAppKitNetwork } from '@reown/appkit/react'
-import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import { hedera, hederaTestnet } from '@reown/appkit/networks'
+import {
+    HederaAdapter,
+    HederaChainDefinition,
+    HederaProvider,
+    hederaNamespace
+} from '@hashgraph/hedera-wallet-connect'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { WagmiProvider } from 'wagmi'
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // Setup queryClient
 const queryClient = new QueryClient()
@@ -23,28 +26,84 @@ const metadata = {
     icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 
-export const wagmiAdapter = new WagmiAdapter({
+// 1. Setup EVM Adapter (for JSON-RPC / Hashio)
+const hederaEVMAdapter = new HederaAdapter({
     projectId,
-    networks: [hedera, hederaTestnet]
-})
+    networks: [HederaChainDefinition.EVM.Testnet],
+    namespace: 'eip155',
+});
 
-export const appKit = createAppKit({
-    adapters: [wagmiAdapter],
-    networks: [hedera, hederaTestnet],
-    defaultNetwork: hederaTestnet,
-    metadata,
+// 2. Setup Native Adapter (for HIP-820 / Native Wallet Discovery)
+const hederaNativeAdapter = new HederaAdapter({
     projectId,
-    features: {
-        analytics: true,
-        email: false,
-        socials: false,
-    },
-    allWallets: 'SHOW'
-})
+    networks: [HederaChainDefinition.Native.Testnet],
+    namespace: hederaNamespace,
+});
+
+// Polyfill global for libraries that expect it
+if (typeof window !== 'undefined' && !window.global) {
+    (window as any).global = window;
+}
+
+// Exported instance for services
+/** @ts-ignore - late init */
+export let appKit: any;
+
+export function WalletConnectProvider({ children }: { children: React.ReactNode }) {
+    const [isReady, setIsReady] = useState(false);
+
+    useEffect(() => {
+        let isMounted = true;
+        async function initAppKit() {
+            try {
+                // Initialize the Universal Provider bridge
+                const up = await HederaProvider.init({
+                    projectId,
+                    metadata,
+                });
+
+                if (!isMounted) return;
+
+                // Create the AppKit instance
+                appKit = createAppKit({
+                    adapters: [hederaEVMAdapter, hederaNativeAdapter],
+                    // @ts-ignore - Bridge to native Hedera wallets
+                    universalProvider: up as unknown as UniversalProvider,
+                    networks: [
+                        HederaChainDefinition.EVM.Testnet,
+                        HederaChainDefinition.Native.Testnet
+                    ],
+                    defaultNetwork: HederaChainDefinition.EVM.Testnet,
+                    metadata,
+                    projectId,
+                    features: {
+                        analytics: true,
+                        email: false,
+                        socials: false,
+                    },
+                    allWallets: 'SHOW'
+                });
+
+                setIsReady(true);
+            } catch (error) {
+                console.error("Failed to initialize AppKit with Hedera:", error);
+            }
+        }
+        initAppKit();
+        return () => { isMounted = false; };
+    }, []);
+
+    // We keep children around but only render NetworkGuard once ready
+    return (
+        <QueryClientProvider client={queryClient}>
+            {isReady && <NetworkGuard />}
+            {children}
+        </QueryClientProvider>
+    );
+}
 
 /**
  * Pre-flight check: Ensures Metamask is on Hedera Testnet BEFORE opening the modal.
- * This prevents the "Invalid Address" and connection errors for EVM wallets.
  */
 export async function ensureHederaNetwork() {
     if ((window as any).ethereum) {
@@ -82,7 +141,7 @@ export async function ensureHederaNetwork() {
             return false;
         }
     }
-    return true; // Not a browser wallet, let AppKit handle it
+    return true;
 }
 
 function NetworkGuard() {
@@ -101,15 +160,4 @@ function NetworkGuard() {
     }, [isConnected, caipNetwork?.id]);
 
     return null;
-}
-
-export function WalletConnectProvider({ children }: { children: React.ReactNode }) {
-    return (
-        <WagmiProvider config={wagmiAdapter.wagmiConfig}>
-            <QueryClientProvider client={queryClient}>
-                <NetworkGuard />
-                {children}
-            </QueryClientProvider>
-        </WagmiProvider>
-    );
 }
