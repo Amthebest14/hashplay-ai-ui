@@ -1,10 +1,12 @@
 import { createAppKit, useAppKitAccount, useAppKitNetwork } from '@reown/appkit/react'
-import { EthersAdapter } from '@reown/appkit-adapter-ethers'
-import { defineChain, hederaTestnet as hederaNative } from '@reown/appkit/networks'
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
+import { hedera, hederaTestnet } from '@reown/appkit/networks'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { WagmiProvider } from 'wagmi'
 import React, { useEffect } from 'react';
 
-// Removed global interface to avoid clashing with existing types.
-// We will use (window as any).ethereum instead.
+// Setup queryClient
+const queryClient = new QueryClient()
 
 // Get Project ID from .env
 const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID;
@@ -12,27 +14,6 @@ const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID;
 if (!projectId) {
     console.error("Missing VITE_WALLETCONNECT_PROJECT_ID in environment variables");
 }
-
-// Set up Hedera Testnet (Chain ID: 296)
-const hederaTestnet = defineChain({
-    id: 296,
-    caipNetworkId: 'eip155:296',
-    chainNamespace: 'eip155',
-    name: 'Hedera Testnet',
-    nativeCurrency: {
-        decimals: 18,
-        name: 'HBAR',
-        symbol: 'HBAR',
-    },
-    rpcUrls: {
-        default: {
-            http: ['https://testnet.hashio.io/api'],
-        },
-    },
-    blockExplorers: {
-        default: { name: 'Hashscan', url: 'https://hashscan.io/testnet' },
-    },
-})
 
 // Create a metadata object
 const metadata = {
@@ -42,9 +23,14 @@ const metadata = {
     icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 
+export const wagmiAdapter = new WagmiAdapter({
+    projectId,
+    networks: [hedera, hederaTestnet]
+})
+
 export const appKit = createAppKit({
-    adapters: [new EthersAdapter()],
-    networks: [hederaTestnet, hederaNative],
+    adapters: [wagmiAdapter],
+    networks: [hedera, hederaTestnet],
     defaultNetwork: hederaTestnet,
     metadata,
     projectId,
@@ -119,9 +105,11 @@ function NetworkGuard() {
 
 export function WalletConnectProvider({ children }: { children: React.ReactNode }) {
     return (
-        <>
-            <NetworkGuard />
-            {children}
-        </>
+        <WagmiProvider config={wagmiAdapter.wagmiConfig}>
+            <QueryClientProvider client={queryClient}>
+                <NetworkGuard />
+                {children}
+            </QueryClientProvider>
+        </WagmiProvider>
     );
 }
