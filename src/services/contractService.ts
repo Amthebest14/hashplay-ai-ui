@@ -62,7 +62,7 @@ export async function playMiningEngineGame(
         const signer = await ethersProvider.getSigner();
 
         // Enforce proper EIP-55 Match Checksum at execution time
-        const contractEvmAddress = getAddress(import.meta.env.VITE_MINING_ENGINE_ADDRESS.toLowerCase());
+        const contractEvmAddress = getAddress(import.meta.env.VITE_MINING_ENGINE_ADDRESS.trim().toLowerCase());
 
         // Initialize the contract connected to the user's signer
         // We need to use the V2 ABI/Interface
