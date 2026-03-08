@@ -1,10 +1,4 @@
 import { createAppKit, useAppKitAccount, useAppKitNetwork } from '@reown/appkit/react'
-import {
-    HederaAdapter,
-    HederaChainDefinition,
-    HederaProvider,
-    hederaNamespace
-} from '@hashgraph/hedera-wallet-connect'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React, { useEffect, useState } from 'react';
 
@@ -26,25 +20,6 @@ const metadata = {
     icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 
-// 1. Setup EVM Adapter (for JSON-RPC / Hashio)
-const hederaEVMAdapter = new HederaAdapter({
-    projectId,
-    networks: [HederaChainDefinition.EVM.Testnet],
-    namespace: 'eip155',
-});
-
-// 2. Setup Native Adapter (for HIP-820 / Native Wallet Discovery)
-const hederaNativeAdapter = new HederaAdapter({
-    projectId,
-    networks: [HederaChainDefinition.Native.Testnet],
-    namespace: hederaNamespace,
-});
-
-// Polyfill global for libraries that expect it
-if (typeof window !== 'undefined' && !window.global) {
-    (window as any).global = window;
-}
-
 // Global appKit instance
 export let appKit: any;
 
@@ -55,6 +30,14 @@ export function WalletConnectProvider({ children }: { children: React.ReactNode 
         let isMounted = true;
         async function initAppKit() {
             try {
+                // Dynamic import to bypass Vite build-time crash
+                const {
+                    HederaAdapter,
+                    HederaChainDefinition,
+                    HederaProvider,
+                    hederaNamespace
+                } = await import('@hashgraph/hedera-wallet-connect');
+
                 // Initialize the Universal Provider bridge (Required for Hedera bridge)
                 const up = await HederaProvider.init({
                     projectId,
@@ -63,11 +46,30 @@ export function WalletConnectProvider({ children }: { children: React.ReactNode 
 
                 if (!isMounted) return;
 
+                // 1. Setup EVM Adapter
+                const hederaEVMAdapter = new HederaAdapter({
+                    projectId,
+                    networks: [HederaChainDefinition.EVM.Testnet],
+                    namespace: 'eip155',
+                });
+
+                // 2. Setup Native Adapter
+                const hederaNativeAdapter = new HederaAdapter({
+                    projectId,
+                    networks: [HederaChainDefinition.Native.Testnet],
+                    namespace: hederaNamespace,
+                });
+
+                // Polyfill global for libraries that expect it
+                if (typeof window !== 'undefined' && !window.global) {
+                    (window as any).global = window;
+                }
+
                 // Create the AppKit instance with both namespaces
                 appKit = createAppKit({
                     adapters: [hederaEVMAdapter, hederaNativeAdapter],
                     // @ts-ignore - Bridge to native Hedera wallets
-                    universalProvider: up as unknown as UniversalProvider,
+                    universalProvider: up,
                     networks: [
                         HederaChainDefinition.EVM.Testnet,
                         HederaChainDefinition.Native.Testnet
