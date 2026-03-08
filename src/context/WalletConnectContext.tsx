@@ -38,7 +38,7 @@ const hederaTestnet = defineChain({
 const metadata = {
     name: 'Hashplay AI',
     description: 'AI-Powered On-Chain Gaming Arena on Hedera',
-    url: 'https://hashplay-ai.vercel.app/', // origin must match your domain & subdomain
+    url: typeof window !== 'undefined' ? window.location.origin : 'https://hashplay-ai.vercel.app/',
     icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 
