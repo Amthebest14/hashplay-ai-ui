@@ -1,6 +1,6 @@
 import { createAppKit, useAppKitAccount, useAppKitNetwork } from '@reown/appkit/react'
 import { EthersAdapter } from '@reown/appkit-adapter-ethers'
-import { defineChain } from '@reown/appkit/networks'
+import { defineChain, hederaTestnet as hederaNative } from '@reown/appkit/networks'
 import React, { useEffect } from 'react';
 
 // Removed global interface to avoid clashing with existing types.
@@ -43,9 +43,9 @@ const metadata = {
 };
 
 export const appKit = createAppKit({
-    adapters: [new EthersAdapter()], // Hedera ethers adapter prioritized
-    networks: [hederaTestnet],
-    defaultNetwork: hederaTestnet, // Lock to Hedera Testnet
+    adapters: [new EthersAdapter()],
+    networks: [hederaTestnet, hederaNative],
+    defaultNetwork: hederaTestnet,
     metadata,
     projectId,
     features: {
@@ -86,6 +86,49 @@ export const appKit = createAppKit({
     allWallets: 'SHOW'
 })
 
+/**
+ * Pre-flight check: Ensures Metamask is on Hedera Testnet BEFORE opening the modal.
+ * This prevents the "Invalid Address" and connection errors for EVM wallets.
+ */
+export async function ensureHederaNetwork() {
+    if ((window as any).ethereum) {
+        try {
+            await (window as any).ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: '0x128' }], // 296 in hex
+            });
+            return true;
+        } catch (switchError: any) {
+            if (switchError.code === 4902) {
+                try {
+                    await (window as any).ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [
+                            {
+                                chainId: '0x128',
+                                chainName: 'Hedera Testnet',
+                                nativeCurrency: {
+                                    name: 'HBAR',
+                                    symbol: 'HBAR',
+                                    decimals: 18,
+                                },
+                                rpcUrls: ['https://testnet.hashio.io/api'],
+                                blockExplorerUrls: ['https://hashscan.io/testnet'],
+                            },
+                        ],
+                    });
+                    return true;
+                } catch (addError) {
+                    console.error("User rejected adding Hedera network");
+                    return false;
+                }
+            }
+            return false;
+        }
+    }
+    return true; // Not a browser wallet, let AppKit handle it
+}
+
 function NetworkGuard() {
     const { isConnected } = useAppKitAccount();
     const { caipNetwork } = useAppKitNetwork();
@@ -93,41 +136,10 @@ function NetworkGuard() {
     useEffect(() => {
         const checkNetwork = async () => {
             if (isConnected && (window as any).ethereum && caipNetwork?.id !== 296) {
-                try {
-                    // Try to switch first using the correct hex string for 296
-                    await (window as any).ethereum.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: '0x128' }],
-                    });
-                } catch (switchError: any) {
-                    // This error code means the chain has not been added to MetaMask
-                    if (switchError.code === 4902) {
-                        try {
-                            await (window as any).ethereum.request({
-                                method: 'wallet_addEthereumChain',
-                                params: [
-                                    {
-                                        chainId: '0x128',
-                                        chainName: 'Hedera Testnet',
-                                        nativeCurrency: {
-                                            name: 'HBAR',
-                                            symbol: 'HBAR',
-                                            decimals: 18,
-                                        },
-                                        rpcUrls: ['https://testnet.hashio.io/api'],
-                                        blockExplorerUrls: ['https://hashscan.io/testnet'],
-                                    },
-                                ],
-                            });
-                        } catch (addError) {
-                            console.error("Failed to add Hedera network", addError);
-                        }
-                    }
-                }
+                await ensureHederaNetwork();
             }
         };
 
-        // Delay checking to ensure provider is ready
         const timer = setTimeout(checkNetwork, 1000);
         return () => clearTimeout(timer);
     }, [isConnected, caipNetwork?.id]);
