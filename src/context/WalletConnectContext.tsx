@@ -94,12 +94,13 @@ function NetworkGuard() {
         const checkNetwork = async () => {
             if (isConnected && (window as any).ethereum && caipNetwork?.id !== 296) {
                 try {
-                    // Try to switch first
+                    // Try to switch first using the correct hex string for 296
                     await (window as any).ethereum.request({
                         method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: '0x128' }], // 296 in hex
+                        params: [{ chainId: '0x128' }],
                     });
                 } catch (switchError: any) {
+                    // This error code means the chain has not been added to MetaMask
                     if (switchError.code === 4902) {
                         try {
                             await (window as any).ethereum.request({
@@ -126,8 +127,10 @@ function NetworkGuard() {
             }
         };
 
-        checkNetwork();
-    }, [isConnected, caipNetwork]);
+        // Delay checking to ensure provider is ready
+        const timer = setTimeout(checkNetwork, 1000);
+        return () => clearTimeout(timer);
+    }, [isConnected, caipNetwork?.id]);
 
     return null;
 }

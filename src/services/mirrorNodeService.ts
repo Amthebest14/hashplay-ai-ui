@@ -122,7 +122,8 @@ export async function getTopHolders(limit: number = 25): Promise<LeaderboardEntr
                 entry.account !== "0.0.8095658" &&
                 entry.account !== "0.0.8095531" &&
                 entry.account !== "0.0.8095848" &&
-                entry.balance < 10000000 // Increased threshold to 10M to allow high earners
+                entry.account !== "0.0.8103703" && // V1 Contract Removed
+                entry.balance < 10000000
             )
             .sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.balance - a.balance) // CRITICAL FIX: Explicit sort descending
             .slice(0, limit);

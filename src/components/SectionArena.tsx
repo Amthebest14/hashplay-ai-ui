@@ -73,8 +73,30 @@ function CoinMock({ isSpinning, result }: { isSpinning: boolean, result: number 
                         emissive="#FFD700"
                         emissiveIntensity={0.1}
                     />
-                    <Text position={[0, 0.16, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.5} color="#000">HEADS</Text>
-                    <Text position={[0, -0.16, 0]} rotation={[Math.PI / 2, Math.PI, 0]} fontSize={0.5} color="#000">TAILS</Text>
+                    <Text
+                        position={[0, 0.16, 0]}
+                        rotation={[-Math.PI / 2, 0, 0]}
+                        fontSize={0.6}
+                        color="#ffffff"
+                        outlineWidth={0.03}
+                        outlineColor="#000000"
+                        anchorX="center"
+                        anchorY="middle"
+                    >
+                        HEADS
+                    </Text>
+                    <Text
+                        position={[0, -0.16, 0]}
+                        rotation={[Math.PI / 2, 0, 0]}
+                        fontSize={0.6}
+                        color="#ffffff"
+                        outlineWidth={0.03}
+                        outlineColor="#000000"
+                        anchorX="center"
+                        anchorY="middle"
+                    >
+                        TAILS
+                    </Text>
                 </mesh>
                 <spotLight position={[0, 5, 2]} intensity={50} angle={0.3} penumbra={1} castShadow />
                 <pointLight position={[-2, 2, 2]} intensity={20} color="#ffffff" />
