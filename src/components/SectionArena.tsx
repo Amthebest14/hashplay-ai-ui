@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { RoundedBox, Text, Float, Environment, Torus } from '@react-three/drei';
+import { RoundedBox, Text, Float, Environment } from '@react-three/drei';
 import { playMiningEngineGame, associateTokenTransaction } from '../services/contractService';
 import { getAccountBalances } from '../services/mirrorNodeService';
 import { useAppKitAccount } from '@reown/appkit/react';
