@@ -47,11 +47,7 @@ export const appKitInstance = createAppKit({
         onramp: false,
         swaps: false,
     },
-    allWallets: 'HIDE', // Hides generic wallets to prevent clutter
-    includeWalletIds: [
-        'bf33f966-2679-45e0-a034-72648796447e', // HashPack
-        'c57ca6a7-0e62-4712-8e62-5953041936e7'  // MetaMask
-    ],
+    allWallets: 'SHOW',
     featuredWalletIds: ['bf33f966-2679-45e0-a034-72648796447e'],
     allowUnsupportedChain: true,
     enableWalletConnect: true,
@@ -60,7 +56,8 @@ export const appKitInstance = createAppKit({
 
 // EIP-6963 Runtime Diagnostics & Versioning
 if (typeof window !== 'undefined') {
-    console.log('💎 Hashplay AI - Wallet Engine v2.2 FORCE-UI ACTIVE');
+    console.log('💎 Hashplay AI - Wallet Engine v2.3 RELAY-DIAGNOSTIC ACTIVE');
+    console.log('🔑 Project ID check:', projectId?.slice(0, 4) + '...' + projectId?.slice(-4));
     window.addEventListener('eip6963:announceProvider', (event: any) => {
         console.log('🚀 Hedera Wallet Detected:', event.detail.info.name);
     });
