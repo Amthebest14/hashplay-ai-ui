@@ -1,48 +1,16 @@
 {
-  "address": "0x1b2fD8146d61aAa481ecE83657c51A9321E993b8",
+  "address": "0x2936b406578d01c30a662080528488fddcca5570",
   "abi": [
     {
       "inputs": [
         {
           "internalType": "address",
-          "name": "_tokenAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "_treasuryWallet",
+          "name": "_hashplayToken",
           "type": "address"
         }
       ],
       "stateMutability": "nonpayable",
       "type": "constructor"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        }
-      ],
-      "name": "OwnableInvalidOwner",
-      "type": "error"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
-      ],
-      "name": "OwnableUnauthorizedAccount",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "ReentrancyGuardReentrantCall",
-      "type": "error"
     },
     {
       "anonymous": false,
@@ -52,6 +20,18 @@
           "internalType": "address",
           "name": "player",
           "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "gameType",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "prediction",
+          "type": "uint8"
         },
         {
           "indexed": false,
@@ -68,11 +48,23 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "payout",
+          "name": "hbarPayout",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "hashplayReward",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "rollResult",
           "type": "uint256"
         }
       ],
-      "name": "GamePlayed",
+      "name": "GameResult",
       "type": "event"
     },
     {
@@ -95,55 +87,10 @@
       "type": "event"
     },
     {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "newFeePercentage",
-          "type": "uint256"
-        }
-      ],
-      "name": "TreasuryFeeUpdated",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "newTreasury",
-          "type": "address"
-        }
-      ],
-      "name": "TreasuryWalletUpdated",
-      "type": "event"
-    },
-    {
       "inputs": [],
-      "name": "WIN_PAYOUT_PERCENTAGE",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
       "name": "fundBankroll",
       "outputs": [],
-      "stateMutability": "nonpayable",
+      "stateMutability": "payable",
       "type": "function"
     },
     {
@@ -151,7 +98,7 @@
       "name": "hashplayToken",
       "outputs": [
         {
-          "internalType": "contract IERC20",
+          "internalType": "address",
           "name": "",
           "type": "address"
         }
@@ -175,14 +122,19 @@
     {
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "wager",
-          "type": "uint256"
+          "internalType": "uint8",
+          "name": "gameType",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint8",
+          "name": "prediction",
+          "type": "uint8"
         }
       ],
-      "name": "playGame",
+      "name": "play",
       "outputs": [],
-      "stateMutability": "nonpayable",
+      "stateMutability": "payable",
       "type": "function"
     },
     {
@@ -190,58 +142,6 @@
       "name": "renounceOwnership",
       "outputs": [],
       "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_newFee",
-          "type": "uint256"
-        }
-      ],
-      "name": "setTreasuryFeePercentage",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_newWallet",
-          "type": "address"
-        }
-      ],
-      "name": "setTreasuryWallet",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "totalGamesPlayed",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "totalTokensPaidOut",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -258,29 +158,16 @@
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "treasuryFeePercentage",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "treasuryWallet",
-      "outputs": [
+      "inputs": [
         {
           "internalType": "address",
-          "name": "",
+          "name": "_newToken",
           "type": "address"
         }
       ],
-      "stateMutability": "view",
+      "name": "updateToken",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -291,10 +178,27 @@
           "type": "uint256"
         }
       ],
-      "name": "withdrawBankroll",
+      "name": "withdrawHBAR",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "withdrawTokens",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
     }
   ]
 }

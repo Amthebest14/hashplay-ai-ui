@@ -1,6 +1,6 @@
 import { createAppKit, useAppKitAccount, useAppKitNetwork } from '@reown/appkit/react'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import { hederaTestnet } from '@reown/appkit/networks'
+import { hederaTestnet, sepolia } from '@reown/appkit/networks'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { http } from 'viem'
 import React, { useEffect } from 'react';
@@ -26,16 +26,17 @@ const metadata = {
 // Setup Wagmi Adapter
 export const wagmiAdapter = new WagmiAdapter({
     projectId,
-    networks: [hederaTestnet],
+    networks: [hederaTestnet, sepolia],
     transports: {
-        [hederaTestnet.id]: http()
+        [hederaTestnet.id]: http(),
+        [sepolia.id]: http()
     }
 });
 
 // Initialize AppKit instance
 export const appKitInstance = createAppKit({
     adapters: [wagmiAdapter],
-    networks: [hederaTestnet],
+    networks: [hederaTestnet, sepolia],
     defaultNetwork: hederaTestnet,
     metadata,
     projectId,
@@ -43,9 +44,22 @@ export const appKitInstance = createAppKit({
         analytics: true,
         email: false,
         socials: false,
+        onramp: false,
+        swaps: false,
     },
-    allWallets: 'SHOW'
+    allWallets: 'SHOW',
+    featuredWalletIds: ['fe118834751cf61cd30c74c0ca183965'], // Force HashPack to the top
+    allowUnsupportedChain: true,
+    enableWalletConnect: true,
+    enableInjected: true, // Crucial for EIP-6963 discovery (HashPack/MetaMask)
 });
+
+// EIP-6963 Runtime Diagnostics
+if (typeof window !== 'undefined') {
+    window.addEventListener('eip6963:announceProvider', (event: any) => {
+        console.log('🚀 Hedera Wallet Detected via EIP-6963:', event.detail.info.name);
+    });
+}
 
 export function WalletConnectProvider({ children }: { children: React.ReactNode }) {
     return (
