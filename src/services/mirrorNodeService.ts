@@ -27,20 +27,21 @@ export interface LeaderboardEntry {
  * Fetches the HBAR and Token balances for a given Hedera Account ID.
  * Also checks if the account is associated with the $HASHPLAY token.
  */
-export async function getAccountBalances(accountId: string): Promise<{ hbar: number, hashplay: number, isAssociated: boolean }> {
+export async function getAccountBalances(accountId: string): Promise<{ hbar: number, hashplay: number, isAssociated: boolean, nativeId: string }> {
     try {
         const hashplayTokenId = import.meta.env.VITE_HASHPLAY_TOKEN_ID;
 
         // Fetch HBAR balance from the main account endpoint
         const accountResponse = await fetch(`${HEDERA_TESTNET_MIRROR}/accounts/${accountId}`);
-        if (!accountResponse.ok) return { hbar: 0, hashplay: 0, isAssociated: false };
+        if (!accountResponse.ok) return { hbar: 0, hashplay: 0, isAssociated: false, nativeId: accountId };
         const accountData: AccountInfo = await accountResponse.json();
         const hbarBalance = accountData.balance.balance / 100000000; // tinybars to HBAR
+        const nativeId = accountData.account; // Extract the true 0.0.X format
 
         // Fetch the specific $HASHPLAY token balance from the dedicated tokens endpoint
         // This is more reliable than reading from the limited balance.tokens array
         const tokenResponse = await fetch(`${HEDERA_TESTNET_MIRROR}/accounts/${accountId}/tokens?token.id=${hashplayTokenId}&limit=1`);
-        if (!tokenResponse.ok) return { hbar: hbarBalance, hashplay: 0, isAssociated: false };
+        if (!tokenResponse.ok) return { hbar: hbarBalance, hashplay: 0, isAssociated: false, nativeId };
         const tokenData = await tokenResponse.json();
 
         const tokenRecord = tokenData.tokens?.[0];
@@ -48,10 +49,10 @@ export async function getAccountBalances(accountId: string): Promise<{ hbar: num
         // $HASHPLAY has 8 decimals
         const hashplayBalance = tokenRecord ? tokenRecord.balance / 1e8 : 0;
 
-        return { hbar: hbarBalance, hashplay: hashplayBalance, isAssociated };
+        return { hbar: hbarBalance, hashplay: hashplayBalance, isAssociated, nativeId };
     } catch (error) {
         console.error("Error fetching account balances:", error);
-        return { hbar: 0, hashplay: 0, isAssociated: false };
+        return { hbar: 0, hashplay: 0, isAssociated: false, nativeId: accountId };
     }
 }
 

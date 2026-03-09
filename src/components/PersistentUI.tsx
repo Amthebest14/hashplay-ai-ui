@@ -12,6 +12,7 @@ export default function PersistentUI() {
 
     const [balances, setBalances] = useState({ hbar: 0, hashplay: 0 });
     const [isAssociated, setIsAssociated] = useState(true);
+    const [nativeId, setNativeId] = useState<string | null>(null);
     const displayRef = useRef({ hbar: 0, hashplay: 0 });
     const [renderBalances, setRenderBalances] = useState({ hbar: 0, hashplay: 0 });
     const [isLoading, setIsLoading] = useState(false);
@@ -39,6 +40,9 @@ export default function PersistentUI() {
                 const b = await getAccountBalances(address);
                 setBalances({ hbar: b.hbar, hashplay: b.hashplay });
                 setIsAssociated(b.isAssociated);
+                setNativeId(b.nativeId);
+            } else {
+                setNativeId(null);
             }
         }
 
@@ -142,7 +146,8 @@ export default function PersistentUI() {
                                     status === 'disconnected' ? 'Connect' :
                                         status === 'wrong-network' ? 'Wrong Network' :
                                             status === 'missing-association' ? 'Enable Mining' :
-                                                address ? `${address.slice(0, 4)}...${address.slice(-4)}` : 'Synced'}
+                                                nativeId ? nativeId :
+                                                    address ? `${address.slice(0, 4)}...${address.slice(-4)}` : 'Synced'}
                             </span>
 
                             {status === 'synced' ? (
