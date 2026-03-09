@@ -8,8 +8,8 @@ import React, { useEffect } from 'react';
 // Setup queryClient
 const queryClient = new QueryClient()
 
-// Get Project ID from .env
-const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID;
+// Get Project ID (Hardcoded to prevent Vercel ENV pipeline newline corruption)
+const projectId = '90f7c21eef9af7a0b4ae6f05eb8e9f88';
 
 if (!projectId) {
     console.error("Missing VITE_WALLETCONNECT_PROJECT_ID in environment variables");
@@ -56,7 +56,7 @@ export const appKitInstance = createAppKit({
 
 // EIP-6963 Runtime Diagnostics & Versioning
 if (typeof window !== 'undefined') {
-    console.log('💎 Hashplay AI - Wallet Engine v2.5 FIXED-NEWLINE ACTIVE');
+    console.log('💎 Hashplay AI - Wallet Engine v2.6 HARDCODED-ID ACTIVE');
     console.log('🔑 Project ID check:', projectId?.slice(0, 4) + '...' + projectId?.slice(-4));
     window.addEventListener('eip6963:announceProvider', (event: any) => {
         console.log('🚀 Hedera Wallet Detected:', event.detail.info.name);
