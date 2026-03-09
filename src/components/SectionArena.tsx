@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { RoundedBox, Text, Float } from '@react-three/drei';
+import { RoundedBox, Text, Float, Environment, Torus } from '@react-three/drei';
 import { playMiningEngineGame, associateTokenTransaction } from '../services/contractService';
 import { getAccountBalances } from '../services/mirrorNodeService';
 import { useAppKitAccount } from '@reown/appkit/react';
@@ -20,28 +20,33 @@ function DiceMock({ position, isSpinning, result }: { position: [number, number,
         if (isSpinning && meshRef.current) {
             meshRef.current.rotation.x += 0.4;
             meshRef.current.rotation.y += 0.5;
+            meshRef.current.rotation.z += 0.2;
         }
     });
 
     useEffect(() => {
         if (!isSpinning && meshRef.current && result) {
             const [x, y, z] = rotations[result] || [0, 0, 0];
-            gsap.to(meshRef.current.rotation, { x: x + Math.PI * 4, y: y + Math.PI * 4, z: z, duration: 1.5, ease: 'power3.out' });
+            gsap.to(meshRef.current.rotation, { x: x + Math.PI * 4, y: y + Math.PI * 4, z: z + Math.PI * 4, duration: 1.5, ease: 'power3.out' });
         }
     }, [isSpinning, result]);
 
     return (
-        <mesh ref={meshRef} position={position}>
-            <RoundedBox args={[1.5, 1.5, 1.5]} radius={0.2} smoothness={4}>
-                <meshStandardMaterial color="#ffffff" roughness={0.2} metalness={0.8} />
-            </RoundedBox>
-            <Text position={[0, 0, 0.76]} fontSize={0.5} color="#000">1</Text>
-            <Text position={[0, 0, -0.76]} rotation={[0, Math.PI, 0]} fontSize={0.5} color="#000">6</Text>
-            <Text position={[0.76, 0, 0]} rotation={[0, Math.PI / 2, 0]} fontSize={0.5} color="#000">2</Text>
-            <Text position={[-0.76, 0, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.5} color="#000">5</Text>
-            <Text position={[0, 0.76, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.5} color="#000">3</Text>
-            <Text position={[0, -0.76, 0]} rotation={[Math.PI / 2, 0, 0]} fontSize={0.5} color="#000">4</Text>
-        </mesh>
+        <group position={position}>
+            <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
+                <mesh ref={meshRef}>
+                    <RoundedBox args={[1.5, 1.5, 1.5]} radius={0.15} smoothness={4}>
+                        <meshStandardMaterial color="#0a0a0a" roughness={0.15} metalness={0.9} envMapIntensity={2} />
+                    </RoundedBox>
+                    <Text position={[0, 0, 0.77]} fontSize={0.6} color="#00C16E" outlineWidth={0.015} outlineColor="#005A33" fontWeight="bold">1</Text>
+                    <Text position={[0, 0, -0.77]} rotation={[0, Math.PI, 0]} fontSize={0.6} color="#00C16E" outlineWidth={0.015} outlineColor="#005A33" fontWeight="bold">6</Text>
+                    <Text position={[0.77, 0, 0]} rotation={[0, Math.PI / 2, 0]} fontSize={0.6} color="#00C16E" outlineWidth={0.015} outlineColor="#005A33" fontWeight="bold">2</Text>
+                    <Text position={[-0.77, 0, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.6} color="#00C16E" outlineWidth={0.015} outlineColor="#005A33" fontWeight="bold">5</Text>
+                    <Text position={[0, 0.77, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.6} color="#00C16E" outlineWidth={0.015} outlineColor="#005A33" fontWeight="bold">3</Text>
+                    <Text position={[0, -0.77, 0]} rotation={[Math.PI / 2, 0, 0]} fontSize={0.6} color="#00C16E" outlineWidth={0.015} outlineColor="#005A33" fontWeight="bold">4</Text>
+                </mesh>
+            </Float>
+        </group>
     );
 }
 
@@ -51,6 +56,7 @@ function CoinMock({ isSpinning, result }: { isSpinning: boolean, result: number 
         if (isSpinning && meshRef.current) {
             meshRef.current.rotation.x += 0.8;
             meshRef.current.rotation.y += 0.2;
+            meshRef.current.rotation.z += 0.1;
         }
     });
 
@@ -62,45 +68,29 @@ function CoinMock({ isSpinning, result }: { isSpinning: boolean, result: number 
     }, [isSpinning, result]);
 
     return (
-        <Float speed={2} rotationIntensity={1.5} floatIntensity={2}>
-            <group>
-                <mesh ref={meshRef}>
-                    <cylinderGeometry args={[2.2, 2.2, 0.3, 64]} />
-                    <meshStandardMaterial
-                        color="#FFD700"
-                        roughness={0.05}
-                        metalness={1}
-                        emissive="#FFD700"
-                        emissiveIntensity={0.1}
-                    />
-                    <Text
-                        position={[0, 0.16, 0]}
-                        rotation={[-Math.PI / 2, 0, 0]}
-                        fontSize={0.6}
-                        color="#ffffff"
-                        outlineWidth={0.03}
-                        outlineColor="#000000"
-                        anchorX="center"
-                        anchorY="middle"
-                    >
-                        HEADS
-                    </Text>
-                    <Text
-                        position={[0, -0.16, 0]}
-                        rotation={[Math.PI / 2, 0, 0]}
-                        fontSize={0.6}
-                        color="#ffffff"
-                        outlineWidth={0.03}
-                        outlineColor="#000000"
-                        anchorX="center"
-                        anchorY="middle"
-                    >
-                        TAILS
-                    </Text>
+        <Float speed={3} rotationIntensity={1} floatIntensity={1.5}>
+            <group ref={meshRef}>
+                <mesh>
+                    <cylinderGeometry args={[2, 2, 0.15, 64]} />
+                    <meshStandardMaterial color="#111111" roughness={0.2} metalness={0.9} envMapIntensity={1.5} />
                 </mesh>
-                <spotLight position={[0, 5, 2]} intensity={50} angle={0.3} penumbra={1} castShadow />
-                <pointLight position={[-2, 2, 2]} intensity={20} color="#ffffff" />
+                <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                    <torusGeometry args={[2, 0.15, 32, 100]} />
+                    <meshStandardMaterial color="#00C16E" roughness={0.1} metalness={0.8} emissive="#00C16E" emissiveIntensity={0.2} />
+                </mesh>
+                <mesh position={[0, 0.08, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                    <torusGeometry args={[1.7, 0.02, 16, 100]} />
+                    <meshStandardMaterial color="#ffffff" metalness={1} roughness={0} />
+                </mesh>
+                <mesh position={[0, -0.08, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                    <torusGeometry args={[1.7, 0.02, 16, 100]} />
+                    <meshStandardMaterial color="#ffffff" metalness={1} roughness={0} />
+                </mesh>
+                <Text position={[0, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.7} color="#ffffff" outlineWidth={0.02} outlineColor="#00C16E" fontWeight="bold">HEADS</Text>
+                <Text position={[0, -0.1, 0]} rotation={[Math.PI / 2, 0, 0]} fontSize={0.7} color="#ffffff" outlineWidth={0.02} outlineColor="#00C16E" fontWeight="bold">TAILS</Text>
             </group>
+            <pointLight position={[0, 3, 2]} intensity={20} color="#00C16E" distance={10} />
+            <pointLight position={[0, -3, -2]} intensity={20} color="#00F2FF" distance={10} />
         </Float>
     );
 }
@@ -324,6 +314,7 @@ export default function SectionArena() {
                                 }`}>
                                 <Canvas camera={{ position: [0, 0, 5] }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }}>
                                     <ambientLight intensity={0.8} />
+                                    <Environment preset="city" />
                                     <pointLight position={[10, 10, 10]} intensity={1.5} />
                                     <DiceMock position={[-1.6, 0, 0]} isSpinning={gameState.gameType === 1 && gameState.isSpinning} result={gameState.diceResult[0]} />
                                     <DiceMock position={[1.6, 0, 0]} isSpinning={gameState.gameType === 1 && gameState.isSpinning} result={gameState.diceResult[1]} />
@@ -375,6 +366,7 @@ export default function SectionArena() {
                                 }`}>
                                 <Canvas camera={{ position: [0, 0, 5] }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }}>
                                     <ambientLight intensity={0.8} />
+                                    <Environment preset="city" />
                                     <pointLight position={[10, 10, 10]} intensity={1.5} />
                                     <CoinMock isSpinning={gameState.gameType === 2 && gameState.isSpinning} result={gameState.coinResult} />
                                 </Canvas>
