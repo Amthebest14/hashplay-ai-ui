@@ -1,5 +1,6 @@
 import { useState, useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
+import { Analytics } from '@vercel/analytics/react';
 import BackgroundShader from './components/BackgroundShader';
 import PersistentUI from './components/PersistentUI';
 import SectionHero from './components/SectionHero';
@@ -100,6 +101,7 @@ function App() {
         </div>
 
         <NotificationToast />
+        <Analytics />
       </div>
     </NotificationProvider>
   );
