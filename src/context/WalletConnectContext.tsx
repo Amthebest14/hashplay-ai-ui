@@ -1,6 +1,6 @@
 import { createAppKit, useAppKitAccount, useAppKitNetwork } from '@reown/appkit/react'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import { hederaTestnet, sepolia } from '@reown/appkit/networks'
+import { hedera, hederaTestnet, sepolia } from '@reown/appkit/networks'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { http } from 'viem'
 import React, { useEffect } from 'react';
@@ -11,9 +11,11 @@ const queryClient = new QueryClient()
 // Get Project ID (Hardcoded to prevent Vercel ENV pipeline newline corruption)
 const projectId = '90f7c21eef9af7a0b4ae6f05eb8e9f88';
 
-if (!projectId) {
-    console.error("Missing VITE_WALLETCONNECT_PROJECT_ID in environment variables");
-}
+// Determine Active Network from Environment
+const isMainnet = import.meta.env.VITE_NETWORK === 'mainnet';
+const activeNetwork = isMainnet ? hedera : hederaTestnet;
+const targetChainIdDecimal = activeNetwork.id; // 295 for mainnet, 296 for testnet
+const targetChainIdHex = isMainnet ? '0x127' : '0x128';
 
 // Create a metadata object
 const metadata = {
@@ -26,9 +28,9 @@ const metadata = {
 // Setup Wagmi Adapter
 export const wagmiAdapter = new WagmiAdapter({
     projectId,
-    networks: [hederaTestnet, sepolia],
+    networks: [activeNetwork, sepolia],
     transports: {
-        [hederaTestnet.id]: http(),
+        [activeNetwork.id]: http(),
         [sepolia.id]: http()
     }
 });
@@ -36,8 +38,8 @@ export const wagmiAdapter = new WagmiAdapter({
 // Initialize AppKit instance
 export const appKitInstance = createAppKit({
     adapters: [wagmiAdapter],
-    networks: [hederaTestnet, sepolia],
-    defaultNetwork: hederaTestnet,
+    networks: [activeNetwork, sepolia],
+    defaultNetwork: activeNetwork,
     metadata,
     projectId,
     features: {
@@ -56,8 +58,7 @@ export const appKitInstance = createAppKit({
 
 // EIP-6963 Runtime Diagnostics & Versioning
 if (typeof window !== 'undefined') {
-    console.log('💎 Hashplay AI - Wallet Engine v2.6 HARDCODED-ID ACTIVE');
-    console.log('🔑 Project ID check:', projectId?.slice(0, 4) + '...' + projectId?.slice(-4));
+    console.log(`💎 Hashplay AI - Wallet Engine v2.7 [${isMainnet ? 'MAINNET' : 'TESTNET'}] ACTIVE`);
     window.addEventListener('eip6963:announceProvider', (event: any) => {
         console.log('🚀 Hedera Wallet Detected:', event.detail.info.name);
     });
@@ -73,14 +74,14 @@ export function WalletConnectProvider({ children }: { children: React.ReactNode 
 }
 
 /**
- * Pre-flight check: Ensures Metamask is on Hedera Testnet BEFORE opening the modal.
+ * Pre-flight check: Ensures Wallet is on Correct Hedera Network BEFORE opening the modal.
  */
 export async function ensureHederaNetwork() {
     if ((window as any).ethereum) {
         try {
             await (window as any).ethereum.request({
                 method: 'wallet_switchEthereumChain',
-                params: [{ chainId: '0x128' }], // 296 in hex
+                params: [{ chainId: targetChainIdHex }],
             });
             return true;
         } catch (switchError: any) {
@@ -90,15 +91,15 @@ export async function ensureHederaNetwork() {
                         method: 'wallet_addEthereumChain',
                         params: [
                             {
-                                chainId: '0x128',
-                                chainName: 'Hedera Testnet',
+                                chainId: targetChainIdHex,
+                                chainName: isMainnet ? 'Hedera Mainnet' : 'Hedera Testnet',
                                 nativeCurrency: {
                                     name: 'HBAR',
                                     symbol: 'HBAR',
                                     decimals: 18,
                                 },
-                                rpcUrls: ['https://testnet.hashio.io/api'],
-                                blockExplorerUrls: ['https://hashscan.io/testnet'],
+                                rpcUrls: [isMainnet ? 'https://mainnet.hashio.io/api' : 'https://testnet.hashio.io/api'],
+                                blockExplorerUrls: [isMainnet ? 'https://hashscan.io/mainnet' : 'https://hashscan.io/testnet'],
                             },
                         ],
                     });
@@ -120,7 +121,7 @@ function NetworkGuard() {
 
     useEffect(() => {
         const checkNetwork = async () => {
-            if (isConnected && (window as any).ethereum && caipNetwork?.id !== 296) {
+            if (isConnected && (window as any).ethereum && caipNetwork?.id !== targetChainIdDecimal) {
                 await ensureHederaNetwork();
             }
         };
