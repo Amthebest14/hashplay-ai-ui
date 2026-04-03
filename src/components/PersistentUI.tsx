@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useAppKitAccount, useAppKitNetwork, useAppKit } from '@reown/appkit/react'
 import { getAccountBalances } from '../services/mirrorNodeService';
 import { getUserPoints } from '../services/contractService';
-import { ensureHederaNetwork } from '../context/WalletConnectContext';
 import gsap from 'gsap';
 import { ShieldCheck, Wallet, AlertCircle } from 'lucide-react';
 
@@ -66,10 +65,7 @@ export default function PersistentUI() {
     const handleConnectClick = async () => {
         setIsLoading(true);
         try {
-            const networkOk = await ensureHederaNetwork();
-            if (networkOk || !isConnected) {
-                await open();
-            }
+            await open();
         } catch (e) {
             console.error("Connection flow interrupted", e);
         } finally {
