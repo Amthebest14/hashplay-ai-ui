@@ -31,9 +31,10 @@ export default function SectionLeaderboard() {
 
             <div className="glass-panel rounded-3xl flex-1 flex flex-col overflow-hidden">
                 {/* Table Header */}
-                <div className="grid grid-cols-4 px-8 py-4 bg-black/40 border-b border-white/10 text-xs tracking-widest text-white/50 uppercase">
+                <div className="grid grid-cols-5 px-8 py-4 bg-black/40 border-b border-white/10 text-xs tracking-widest text-white/50 uppercase">
                     <div className="col-span-1">RANK</div>
                     <div className="col-span-2">ADDRESS</div>
+                    <div className="col-span-1 text-right">POINTS</div>
                     <div className="col-span-1 text-right">BALANCE ($HASHPLAY)</div>
                 </div>
 
@@ -54,12 +55,15 @@ export default function SectionLeaderboard() {
                     {holders.map((row, index) => (
                         <div
                             key={row.account}
-                            className="grid grid-cols-4 px-6 py-4 mx-2 my-1 rounded-xl hover:bg-white/5 transition-colors items-center text-sm group"
+                            className="grid grid-cols-5 px-6 py-4 mx-2 my-1 rounded-xl hover:bg-white/5 transition-colors items-center text-sm group"
                         >
                             <div className="col-span-1 font-semibold text-white/70 group-hover:text-white transition-colors">
                                 #{index + 1}
                             </div>
                             <div className="col-span-2 tracking-[0.2em]">{row.account}</div>
+                            <div className="col-span-1 text-right text-yellow-500 font-medium tracking-widest">
+                                {row.points !== undefined ? Number(row.points).toLocaleString() : '0'} XP
+                            </div>
                             <div className="col-span-1 text-right text-hedera-green font-medium">
                                 {Number(row.balance).toLocaleString()}
                             </div>

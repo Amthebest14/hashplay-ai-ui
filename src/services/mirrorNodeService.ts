@@ -3,6 +3,8 @@
  * Fetches token balances and leaderboard data without requiring a connected wallet.
  */
 
+import { Contract, JsonRpcProvider } from 'ethers';
+
 const rawNetwork = import.meta.env.VITE_NETWORK || 'testnet';
 const isMainnet = rawNetwork.trim().toLowerCase() === 'mainnet';
 const HEDERA_MIRROR = isMainnet
@@ -25,6 +27,7 @@ export interface AccountInfo {
 export interface LeaderboardEntry {
     account: string;
     balance: number;
+    points?: number; // Fetched from smart contract
 }
 
 /**
@@ -132,8 +135,35 @@ export async function getTopHolders(limit: number = 25): Promise<LeaderboardEntr
                 entry.account !== "0.0.8103703" && // V1 Contract Removed
                 entry.balance < 10000000
             )
-            .sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.balance - a.balance) // CRITICAL FIX: Explicit sort descending
+            .sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.balance - a.balance) 
             .slice(0, limit);
+
+        // Fetch User Points from Smart Contract
+        try {
+            const rpcUrl = isMainnet ? "https://mainnet.hashio.io/api" : "https://testnet.hashio.io/api";
+            const provider = new JsonRpcProvider(rpcUrl);
+            const abi = ["function userPoints(address) view returns (uint256)"];
+            const contract = new Contract(contractEvmAddress, abi, provider);
+
+            await Promise.all(entries.map(async (entry) => {
+                try {
+                    // Resolve Hedera Account ID to EVM Address via Mirror Node
+                    const accRes = await fetch(`${HEDERA_MIRROR}/accounts/${entry.account}`);
+                    if (!accRes.ok) return;
+                    const accData = await accRes.json();
+                    const evmAddress = accData.evm_address;
+
+                    if (evmAddress) {
+                        const points = await contract.userPoints(evmAddress);
+                        entry.points = Number(points);
+                    }
+                } catch (err) {
+                    console.error(`Failed to fetch points for ${entry.account}`, err);
+                }
+            }));
+        } catch (contractErr) {
+            console.error("Error connecting to contract for points:", contractErr);
+        }
 
         return entries;
     } catch (error) {

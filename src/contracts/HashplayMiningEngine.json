@@ -1,5 +1,5 @@
 {
-  "address": "0x2A38Cf870E8e40EA10e8dA100F179f01f7463a78",
+  "address": "0xb20526EFBD008bB488f760F222cE9afb712F7024",
   "abi": [
     {
       "inputs": [
@@ -201,6 +201,19 @@
       "name": "setTreasuryWallet",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalGamesPlayed",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {

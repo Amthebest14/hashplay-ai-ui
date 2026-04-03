@@ -89,10 +89,12 @@ export async function playMiningEngineGame(
         ];
         const contract = new Contract(contractEvmAddress, arenaV2Interface, signer);
 
+        // Hedera EVM uses weibars (1 HBAR = 1e18 weibars), same as ETH wei. parseEther is correct.
         const valueToSend = parseEther(wagerAmount.toString());
 
-        // Safe gas limit that won't trigger Wallet's strict Max-Fee Reserve checks
-        const tx = await contract.play(gameType, prediction, { value: valueToSend, gasLimit: 1200000 });
+        // Higher gas limit to prevent wallet/relay from underestimating.
+        // Hedera charges only for gas actually used, so overshooting is safe.
+        const tx = await contract.play(gameType, prediction, { value: valueToSend, gasLimit: 800_000 });
 
         const receipt = await tx.wait();
 
