@@ -12,7 +12,6 @@ export default function PersistentUI() {
     const { open } = useAppKit();
 
     const [balances, setBalances] = useState({ hbar: 0, hashplay: 0, points: 0n });
-    const [isAssociated, setIsAssociated] = useState(true);
     const [nativeId, setNativeId] = useState<string | null>(null);
     const displayRef = useRef({ hbar: 0, hashplay: 0, points: 0 });
     const [renderBalances, setRenderBalances] = useState({ hbar: 0, hashplay: 0, points: 0 });
@@ -43,7 +42,6 @@ export default function PersistentUI() {
                 const b = await getAccountBalances(address);
                 const p = await getUserPoints(address);
                 setBalances({ hbar: b.hbar, hashplay: b.hashplay, points: p });
-                setIsAssociated(b.isAssociated);
                 setNativeId(b.nativeId);
             } else {
                 setNativeId(null);
