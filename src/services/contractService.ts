@@ -91,8 +91,8 @@ export async function playMiningEngineGame(
 
         const valueToSend = parseEther(wagerAmount.toString());
 
-        // Higher gas limit for safety with System Contract calls
-        const tx = await contract.play(gameType, prediction, { value: valueToSend, gasLimit: 1200000 });
+        // Higher gas limit for safety with System Contract calls (Hedera PRNG requires higher gas)
+        const tx = await contract.play(gameType, prediction, { value: valueToSend, gasLimit: 3000000 });
 
         const receipt = await tx.wait();
 
