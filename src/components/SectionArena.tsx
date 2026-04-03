@@ -295,14 +295,14 @@ export default function SectionArena() {
                             </div>
 
                             <button
-                                disabled={gameState.isSpinning || !gameState.selectedDice}
+                                disabled={gameState.isSpinning || !gameState.selectedDice || wager < 1}
                                 onClick={() => handlePlayGame(1)}
-                                className={`w-full py-4 rounded-xl font-bold tracking-widest transition-all uppercase ${gameState.isSpinning || !gameState.selectedDice
+                                className={`w-full py-4 rounded-xl font-bold tracking-widest transition-all uppercase ${gameState.isSpinning || !gameState.selectedDice || wager < 1
                                     ? 'bg-white/10 text-white/40 cursor-not-allowed'
                                     : 'bg-hedera-green text-black shadow-[0_0_20px_rgba(0,193,110,0.5)] hover:scale-[1.02]'
                                     }`}
                             >
-                                {gameState.isSpinning ? 'Rolling...' : 'Roll'}
+                                {wager < 1 ? 'Min 1 HBAR' : gameState.isSpinning ? 'Rolling...' : 'Roll'}
                             </button>
                         </div>
                     </div>
@@ -361,11 +361,11 @@ export default function SectionArena() {
 
                                 <button
                                     onClick={() => handlePlayGame(2)}
-                                    disabled={gameState.isSpinning || !wager}
-                                    className={`w-full py-4 rounded-2xl font-bold tracking-widest transition-all duration-300 relative overflow-hidden group ${gameState.isSpinning || !wager ? 'bg-white/5 text-white/20 cursor-not-allowed' : 'bg-white text-black hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+                                    disabled={gameState.isSpinning || wager < 1}
+                                    className={`w-full py-4 rounded-2xl font-bold tracking-widest transition-all duration-300 relative overflow-hidden group ${gameState.isSpinning || wager < 1 ? 'bg-white/5 text-white/20 cursor-not-allowed' : 'bg-white text-black hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)]'
                                         }`}>
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                                    {gameState.isSpinning ? 'MINING...' : 'FLIP COIN'}
+                                    {wager < 1 ? 'Min 1 HBAR' : gameState.isSpinning ? 'MINING...' : 'FLIP COIN'}
                                 </button>
                             </div>
                         </div>
