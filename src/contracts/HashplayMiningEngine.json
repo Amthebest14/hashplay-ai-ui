@@ -1,16 +1,43 @@
 {
-  "address": "0x2936b406578d01c30a662080528488fddcca5570",
+  "address": "0x2A38Cf870E8e40EA10e8dA100F179f01f7463a78",
   "abi": [
     {
       "inputs": [
         {
           "internalType": "address",
-          "name": "_hashplayToken",
+          "name": "_treasuryWallet",
           "type": "address"
         }
       ],
       "stateMutability": "nonpayable",
       "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableInvalidOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ReentrancyGuardReentrantCall",
+      "type": "error"
     },
     {
       "anonymous": false,
@@ -54,7 +81,7 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "hashplayReward",
+          "name": "pointsEarned",
           "type": "uint256"
         },
         {
@@ -87,23 +114,42 @@
       "type": "event"
     },
     {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "player",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "PointsAwarded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newTreasury",
+          "type": "address"
+        }
+      ],
+      "name": "TreasuryUpdated",
+      "type": "event"
+    },
+    {
       "inputs": [],
       "name": "fundBankroll",
       "outputs": [],
       "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "hashplayToken",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -148,6 +194,19 @@
       "inputs": [
         {
           "internalType": "address",
+          "name": "_newTreasury",
+          "type": "address"
+        }
+      ],
+      "name": "setTreasuryWallet",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
           "name": "newOwner",
           "type": "address"
         }
@@ -158,16 +217,35 @@
       "type": "function"
     },
     {
-      "inputs": [
+      "inputs": [],
+      "name": "treasuryWallet",
+      "outputs": [
         {
           "internalType": "address",
-          "name": "_newToken",
+          "name": "",
           "type": "address"
         }
       ],
-      "name": "updateToken",
-      "outputs": [],
-      "stateMutability": "nonpayable",
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "userPoints",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -179,19 +257,6 @@
         }
       ],
       "name": "withdrawHBAR",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "withdrawTokens",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
