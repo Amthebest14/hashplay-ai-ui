@@ -3,7 +3,8 @@
  * Fetches token balances and leaderboard data without requiring a connected wallet.
  */
 
-const isMainnet = import.meta.env.VITE_NETWORK === 'mainnet';
+const rawNetwork = import.meta.env.VITE_NETWORK || 'testnet';
+const isMainnet = rawNetwork.trim().toLowerCase() === 'mainnet';
 const HEDERA_MIRROR = isMainnet
     ? "https://mainnet-public.mirrornode.hedera.com/api/v1"
     : "https://testnet.mirrornode.hedera.com/api/v1";
@@ -32,7 +33,8 @@ export interface LeaderboardEntry {
  */
 export async function getAccountBalances(accountId: string): Promise<{ hbar: number, hashplay: number, isAssociated: boolean, nativeId: string }> {
     try {
-        const hashplayTokenId = import.meta.env.VITE_HASHPLAY_TOKEN_ID;
+        const tokenIdRaw = import.meta.env.VITE_HASHPLAY_TOKEN_ID || '';
+        const hashplayTokenId = tokenIdRaw.trim();
 
         // Fetch HBAR balance from the main account endpoint
         const accountResponse = await fetch(`${HEDERA_MIRROR}/accounts/${accountId}`);
@@ -64,7 +66,8 @@ export async function getAccountBalances(accountId: string): Promise<{ hbar: num
  */
 export async function getTotalMined(): Promise<number> {
     try {
-        const hashplayTokenId = import.meta.env.VITE_HASHPLAY_TOKEN_ID;
+        const tokenIdRaw = import.meta.env.VITE_HASHPLAY_TOKEN_ID || '';
+        const hashplayTokenId = tokenIdRaw.trim();
         const response = await fetch(`${HEDERA_MIRROR}/tokens/${hashplayTokenId}`);
         if (!response.ok) return 0;
 
@@ -84,9 +87,9 @@ export async function getTotalMined(): Promise<number> {
  */
 export async function getTopHolders(limit: number = 25): Promise<LeaderboardEntry[]> {
     try {
-        const hashplayTokenId = import.meta.env.VITE_HASHPLAY_TOKEN_ID;
-        const treasuryId = import.meta.env.VITE_TREASURY_ACCOUNT_ID;
-        const contractEvmAddress = import.meta.env.VITE_MINING_ENGINE_ADDRESS;
+        const hashplayTokenId = (import.meta.env.VITE_HASHPLAY_TOKEN_ID || '').trim();
+        const treasuryId = (import.meta.env.VITE_TREASURY_ACCOUNT_ID || '').trim();
+        const contractEvmAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '').trim();
 
         // Fetch top 100 to have room for filtering out many contracts
         const response = await fetch(`${HEDERA_MIRROR}/tokens/${hashplayTokenId}/balances?limit=100&order=desc`);

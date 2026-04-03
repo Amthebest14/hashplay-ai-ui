@@ -77,7 +77,8 @@ export default function PersistentUI() {
         if (!isConnected) return 'disconnected';
         // Check for Hedera Testnet (296) or Mainnet (295)
         const chainId = caipNetwork?.id;
-        const targetChainId = import.meta.env.VITE_NETWORK === 'mainnet' ? 295 : 296;
+        const rawNetwork = import.meta.env.VITE_NETWORK || 'testnet';
+        const targetChainId = rawNetwork.trim().toLowerCase() === 'mainnet' ? 295 : 296;
         if (chainId !== targetChainId) return 'wrong-network';
         return 'synced';
     };

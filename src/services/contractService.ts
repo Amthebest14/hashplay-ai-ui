@@ -44,7 +44,8 @@ export async function getUserPoints(userAddress: string) {
 
     try {
         const ethersProvider = new BrowserProvider(provider as any);
-        const contractEvmAddress = getAddress(import.meta.env.VITE_MINING_ENGINE_ADDRESS.trim().toLowerCase());
+        const engineAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '').trim();
+        const contractEvmAddress = getAddress(engineAddress.toLowerCase());
         
         const arenaInterface = [
             "function userPoints(address) external view returns (uint256)"
@@ -79,7 +80,8 @@ export async function playMiningEngineGame(
         const ethersProvider = new BrowserProvider(provider as any);
         const signer = await ethersProvider.getSigner();
 
-        const contractEvmAddress = getAddress(import.meta.env.VITE_MINING_ENGINE_ADDRESS.trim().toLowerCase());
+        const engineAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '').trim();
+        const contractEvmAddress = getAddress(engineAddress.toLowerCase());
 
         const arenaV2Interface = [
             "function play(uint8 gameType, uint8 prediction) external payable",

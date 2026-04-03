@@ -9,10 +9,11 @@ import React, { useEffect } from 'react';
 const queryClient = new QueryClient()
 
 // Get Project ID (Hardcoded to prevent Vercel ENV pipeline newline corruption)
-const projectId = '90f7c21eef9af7a0b4ae6f05eb8e9f88';
+const projectId = '90f7c21eef9af7a0b4ae6f05eb8e9f88'.trim();
 
 // Determine Active Network from Environment
-const isMainnet = import.meta.env.VITE_NETWORK === 'mainnet';
+const rawNetwork = import.meta.env.VITE_NETWORK || 'testnet';
+const isMainnet = rawNetwork.trim().toLowerCase() === 'mainnet';
 const activeNetwork = isMainnet ? hedera : hederaTestnet;
 const targetChainIdDecimal = activeNetwork.id; // 295 for mainnet, 296 for testnet
 const targetChainIdHex = isMainnet ? '0x127' : '0x128';
