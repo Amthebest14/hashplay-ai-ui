@@ -3,7 +3,10 @@
  * Fetches token balances and leaderboard data without requiring a connected wallet.
  */
 
-const HEDERA_TESTNET_MIRROR = "https://testnet.mirrornode.hedera.com/api/v1";
+const isMainnet = import.meta.env.VITE_NETWORK === 'mainnet';
+const HEDERA_MIRROR = isMainnet
+    ? "https://mainnet-public.mirrornode.hedera.com/api/v1"
+    : "https://testnet.mirrornode.hedera.com/api/v1";
 
 export interface TokenBalance {
     token_id: string;
@@ -32,7 +35,7 @@ export async function getAccountBalances(accountId: string): Promise<{ hbar: num
         const hashplayTokenId = import.meta.env.VITE_HASHPLAY_TOKEN_ID;
 
         // Fetch HBAR balance from the main account endpoint
-        const accountResponse = await fetch(`${HEDERA_TESTNET_MIRROR}/accounts/${accountId}`);
+        const accountResponse = await fetch(`${HEDERA_MIRROR}/accounts/${accountId}`);
         if (!accountResponse.ok) return { hbar: 0, hashplay: 0, isAssociated: false, nativeId: accountId };
         const accountData: AccountInfo = await accountResponse.json();
         const hbarBalance = accountData.balance.balance / 100000000; // tinybars to HBAR
@@ -40,7 +43,7 @@ export async function getAccountBalances(accountId: string): Promise<{ hbar: num
 
         // Fetch the specific $HASHPLAY token balance from the dedicated tokens endpoint
         // This is more reliable than reading from the limited balance.tokens array
-        const tokenResponse = await fetch(`${HEDERA_TESTNET_MIRROR}/accounts/${accountId}/tokens?token.id=${hashplayTokenId}&limit=1`);
+        const tokenResponse = await fetch(`${HEDERA_MIRROR}/accounts/${accountId}/tokens?token.id=${hashplayTokenId}&limit=1`);
         if (!tokenResponse.ok) return { hbar: hbarBalance, hashplay: 0, isAssociated: false, nativeId };
         const tokenData = await tokenResponse.json();
 
@@ -62,7 +65,7 @@ export async function getAccountBalances(accountId: string): Promise<{ hbar: num
 export async function getTotalMined(): Promise<number> {
     try {
         const hashplayTokenId = import.meta.env.VITE_HASHPLAY_TOKEN_ID;
-        const response = await fetch(`${HEDERA_TESTNET_MIRROR}/tokens/${hashplayTokenId}`);
+        const response = await fetch(`${HEDERA_MIRROR}/tokens/${hashplayTokenId}`);
         if (!response.ok) return 0;
 
         const data = await response.json();
@@ -86,7 +89,7 @@ export async function getTopHolders(limit: number = 25): Promise<LeaderboardEntr
         const contractEvmAddress = import.meta.env.VITE_MINING_ENGINE_ADDRESS;
 
         // Fetch top 100 to have room for filtering out many contracts
-        const response = await fetch(`${HEDERA_TESTNET_MIRROR}/tokens/${hashplayTokenId}/balances?limit=100&order=desc`);
+        const response = await fetch(`${HEDERA_MIRROR}/tokens/${hashplayTokenId}/balances?limit=100&order=desc`);
         if (!response.ok) return [];
 
         const data = await response.json();
@@ -94,7 +97,7 @@ export async function getTopHolders(limit: number = 25): Promise<LeaderboardEntr
         // Find the current Game Contract's Hedera ID from its EVM address
         let currentContractId = "0.0.0";
         try {
-            const contractRes = await fetch(`${HEDERA_TESTNET_MIRROR}/accounts/${contractEvmAddress}`);
+            const contractRes = await fetch(`${HEDERA_MIRROR}/accounts/${contractEvmAddress}`);
             if (contractRes.ok) {
                 const contractData = await contractRes.json();
                 currentContractId = contractData.account;
