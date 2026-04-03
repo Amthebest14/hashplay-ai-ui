@@ -92,9 +92,9 @@ export async function playMiningEngineGame(
         // Hedera EVM uses weibars (1 HBAR = 1e18 weibars), same as ETH wei. parseEther is correct.
         const valueToSend = parseEther(wagerAmount.toString());
 
-        // Higher gas limit to prevent wallet/relay from underestimating.
-        // Hedera charges only for gas actually used, so overshooting is safe.
-        const tx = await contract.play(gameType, prediction, { value: valueToSend, gasLimit: 800_000 });
+        // Hedera EVM charges ~2M gas for contracts with .call{value} transfers.
+        // Confirmed via mainnet test: actual gas used ~1,994,504. 2.5M gives safe headroom.
+        const tx = await contract.play(gameType, prediction, { value: valueToSend, gasLimit: 2_500_000 });
 
         const receipt = await tx.wait();
 
