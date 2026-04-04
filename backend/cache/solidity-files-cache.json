@@ -451,6 +451,45 @@
       "artifacts": [
         "HashplayArenaV4"
       ]
+    },
+    "C:\\Users\\DELL\\.gemini\\antigravity\\scratch\\hashplay-ai-ui\\backend\\contracts\\HashplayArenaV5.sol": {
+      "lastModificationDate": 1775335463660,
+      "contentHash": "e2d9003d1e3b2d860026a9715aba0a90",
+      "sourceName": "contracts/HashplayArenaV5.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/utils/ReentrancyGuard.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "HashplayArenaV5"
+      ]
     }
   }
 }

@@ -348,9 +348,9 @@ export default function SectionArena() {
                             <div className="mt-8 pt-6 border-t border-white/5 flex flex-col gap-4 relative z-10">
                                 <div className="flex justify-between items-center bg-black/30 p-4 rounded-2xl border border-white/5 shadow-inner">
                                     <div className="flex flex-col">
-                                        <span className="text-white/40 text-[10px] tracking-widest uppercase">Mining Reward</span>
-                                        <span className="text-hedera-green font-bold text-lg">
-                                            {wager ? (wager * 500).toLocaleString() : '0'} $HASH
+                                        <span className="text-white/40 text-[10px] tracking-widest uppercase">XP Reward</span>
+                                        <span className="text-emerald-400 font-bold text-lg">
+                                            {wager ? (wager * 500).toLocaleString() : '0'} XP
                                         </span>
                                     </div>
                                     <div className="text-right">
@@ -365,7 +365,7 @@ export default function SectionArena() {
                                     className={`w-full py-4 rounded-2xl font-bold tracking-widest transition-all duration-300 relative overflow-hidden group ${gameState.isSpinning || wager < 1 ? 'bg-white/5 text-white/20 cursor-not-allowed' : 'bg-white text-black hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)]'
                                         }`}>
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                                    {wager < 1 ? 'Min 1 HBAR' : gameState.isSpinning ? 'MINING...' : 'FLIP COIN'}
+                                    {wager < 1 ? 'Min 1 HBAR' : gameState.isSpinning ? 'PLAYING...' : 'FLIP COIN'}
                                 </button>
                             </div>
                         </div>
@@ -381,9 +381,9 @@ export default function SectionArena() {
                     <p className="text-white/40 text-xs">Standard win gives 2x. Hit a 7 in Dice for a massive 4x payoff!</p>
                 </div>
                 <div className="glass-panel p-6 rounded-2xl border border-white/5 flex flex-col gap-2">
-                    <span className="text-red-400/60 text-[10px] tracking-[0.2em] uppercase font-bold">Mining</span>
-                    <h4 className="text-white font-medium">200 Points per Loss</h4>
-                    <p className="text-white/40 text-xs">Lose your HBAR? You still mine 200 Points per 1 HBAR lost.</p>
+                    <span className="text-emerald-400/60 text-[10px] tracking-[0.2em] uppercase font-bold">XP</span>
+                    <h4 className="text-white font-medium">Earn XP even on loss</h4>
+                    <p className="text-white/40 text-xs">You earn 200 XP per 1 HBAR wagered even if you lose.</p>
                 </div>
                 <div className="glass-panel p-6 rounded-2xl border border-white/5 flex flex-col gap-2 relative group overflow-hidden">
                     <span className="text-blue-400/60 text-[10px] tracking-[0.2em] uppercase font-bold">Bankroll</span>

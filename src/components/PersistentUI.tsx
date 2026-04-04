@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAppKitAccount, useAppKitNetwork, useAppKit } from '@reown/appkit/react'
 import { getAccountBalances } from '../services/mirrorNodeService';
-import { getUserPoints } from '../services/contractService';
+import { getPlayerXP } from '../services/contractService';
 import gsap from 'gsap';
 import { ShieldCheck, Wallet, AlertCircle } from 'lucide-react';
 
@@ -10,24 +10,22 @@ export default function PersistentUI() {
     const { caipNetwork } = useAppKitNetwork();
     const { open } = useAppKit();
 
-    const [balances, setBalances] = useState({ hbar: 0, hashplay: 0, points: 0n });
+    const [balances, setBalances] = useState({ hbar: 0, xp: 0n });
     const [nativeId, setNativeId] = useState<string | null>(null);
-    const displayRef = useRef({ hbar: 0, hashplay: 0, points: 0 });
-    const [renderBalances, setRenderBalances] = useState({ hbar: 0, hashplay: 0, points: 0 });
+    const displayRef = useRef({ hbar: 0, xp: 0 });
+    const [renderBalances, setRenderBalances] = useState({ hbar: 0, xp: 0 });
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         gsap.to(displayRef.current, {
             hbar: balances.hbar,
-            hashplay: balances.hashplay,
-            points: Number(balances.points),
+            xp: Number(balances.xp),
             duration: 1.5,
             ease: "power2.out",
             onUpdate: () => {
                 setRenderBalances({
                     hbar: displayRef.current.hbar,
-                    hashplay: displayRef.current.hashplay,
-                    points: Math.round(displayRef.current.points)
+                    xp: Math.round(displayRef.current.xp)
                 });
             }
         });
@@ -39,8 +37,8 @@ export default function PersistentUI() {
         async function fetchData() {
             if (isConnected && address) {
                 const b = await getAccountBalances(address);
-                const p = await getUserPoints(address);
-                setBalances({ hbar: b.hbar, hashplay: b.hashplay, points: p });
+                const xp = await getPlayerXP(address);
+                setBalances({ hbar: b.hbar, xp });
                 setNativeId(b.nativeId);
             } else {
                 setNativeId(null);
@@ -75,7 +73,6 @@ export default function PersistentUI() {
 
     const getStatus = () => {
         if (!isConnected) return 'disconnected';
-        // Check for Hedera Testnet (296) or Mainnet (295)
         const chainId = caipNetwork?.id;
         const rawNetwork = import.meta.env.VITE_NETWORK || 'testnet';
         const targetChainId = rawNetwork.trim().toLowerCase() === 'mainnet' ? 295 : 296;
@@ -106,12 +103,8 @@ export default function PersistentUI() {
                             <span className="text-xs sm:text-sm">{renderBalances.hbar.toFixed(2)}</span>
                         </div>
                         <div className="flex flex-col text-right px-2 py-1 sm:px-3 sm:py-1 bg-black/20 rounded-full">
-                            <span className="hidden sm:inline text-[8px] sm:text-[10px] text-blue-400/50 uppercase tracking-tighter">Points</span>
-                            <span className="text-xs sm:text-sm text-blue-400">{renderBalances.points}</span>
-                        </div>
-                        <div className="flex flex-col text-right px-2 py-1 sm:px-3 sm:py-1 bg-black/20 rounded-full">
-                            <span className="hidden sm:inline text-[8px] sm:text-[10px] text-hedera-green/50 uppercase tracking-tighter">$HASH</span>
-                            <span className="text-xs sm:text-sm text-hedera-green">{renderBalances.hashplay.toFixed(0)}</span>
+                            <span className="hidden sm:inline text-[8px] sm:text-[10px] text-emerald-400/50 uppercase tracking-tighter">XP</span>
+                            <span className="text-xs sm:text-sm text-emerald-400">{renderBalances.xp.toLocaleString()}</span>
                         </div>
                     </div>
 
@@ -160,20 +153,10 @@ export default function PersistentUI() {
 
             <footer className="fixed bottom-6 w-full flex justify-between px-6 pointer-events-none z-50">
                 <div className="flex gap-4 pointer-events-auto">
-                    <a
-                        href="https://x.com/HashPlayApp"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-white/40 hover:text-white transition-colors text-xs tracking-widest"
-                    >
+                    <a href="https://x.com/HashPlayApp" target="_blank" rel="noreferrer" className="text-white/40 hover:text-white transition-colors text-xs tracking-widest">
                         X (Twitter)
                     </a>
-                    <a
-                        href="https://discord.gg/8nvyyHPJ"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-white/40 hover:text-white transition-colors text-xs tracking-widest"
-                    >
+                    <a href="https://discord.gg/8nvyyHPJ" target="_blank" rel="noreferrer" className="text-white/40 hover:text-white transition-colors text-xs tracking-widest">
                         Discord
                     </a>
                 </div>

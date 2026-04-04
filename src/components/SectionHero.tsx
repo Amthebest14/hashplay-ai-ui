@@ -1,20 +1,6 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { getTotalMined } from '../services/mirrorNodeService';
 
 export default function SectionHero({ onEnterArena }: { onEnterArena: () => void }) {
-    const [totalMined, setTotalMined] = useState<number>(0);
-
-    useEffect(() => {
-        const fetchMined = async () => {
-            const mined = await getTotalMined();
-            setTotalMined(mined);
-        };
-        fetchMined();
-        window.addEventListener('refreshBalances', fetchMined);
-        return () => window.removeEventListener('refreshBalances', fetchMined);
-    }, []);
-
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -35,19 +21,12 @@ export default function SectionHero({ onEnterArena }: { onEnterArena: () => void
                     </h1>
 
                     <p className="text-white/70 tracking-widest max-w-2xl text-base md:text-lg">
-                        The future of play is <span className="text-[var(--color-hedera-green)]">liquid</span>. Mine $HASHPLAY through every wager on the Hedera Network.
+                        The future of play is <span className="text-[var(--color-hedera-green)]">liquid</span>. Earn XP through every wager on the Hedera Network and climb the Global Leaderboard.
                     </p>
-
-                    <div className="flex flex-col items-center gap-2 mt-2 mb-4 glass-panel px-8 py-4 rounded-3xl border border-hedera-green/30 shadow-[0_0_20px_rgba(0,193,110,0.15)] backdrop-blur-md">
-                        <span className="text-white/50 text-xs tracking-widest uppercase">Total $HASHPLAY Mined</span>
-                        <span className="text-4xl md:text-5xl font-light text-[var(--color-hedera-green)]">
-                            {totalMined.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                        </span>
-                    </div>
 
                     <button
                         onClick={onEnterArena}
-                        className="glass-panel px-10 py-4 min-h-[44px] rounded-full text-base tracking-widest border border-hedera-green/50 hover:bg-hedera-green/20 hover:border-hedera-green hover:scale-105 hover:shadow-[0_0_30px_rgba(0,193,110,0.4)] transition-all duration-300"
+                        className="mt-8 glass-panel px-10 py-4 min-h-[44px] rounded-full text-base tracking-widest border border-hedera-green/50 hover:bg-hedera-green/20 hover:border-hedera-green hover:scale-105 hover:shadow-[0_0_30px_rgba(0,193,110,0.4)] transition-all duration-300"
                     >
                         Enter the Arena
                     </button>

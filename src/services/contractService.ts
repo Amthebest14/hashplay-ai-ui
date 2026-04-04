@@ -1,44 +1,10 @@
 import { BrowserProvider, Contract, parseEther, getAddress } from 'ethers';
 import { appKitInstance } from '../context/WalletConnectContext';
 
-import { TokenId } from '@hashgraph/sdk';
-const HTS_PRECOMPILE = '0x0000000000000000000000000000000000000167';
-
-const HTS_ABI = [
-    "function associateToken(address account, address token) external returns (int64 responseCode)"
-];
-
 /**
- * Associates the connected wallet with a Hedera token via the HTS precompile.
+ * Fetches the user's on-chain XP balance from the ArenaV5 contract.
  */
-export async function associateTokenTransaction(tokenId: string) {
-    const provider = appKitInstance.getWalletProvider();
-    if (!provider) throw new Error("Wallet not connected.");
-
-    try {
-        const ethersProvider = new BrowserProvider(provider as any);
-        const signer = await ethersProvider.getSigner();
-        const userAddress = await signer.getAddress();
-
-        const rawTokenEvmAddress = '0x' + TokenId.fromString(tokenId).toSolidityAddress();
-        const tokenEvmAddress = getAddress(rawTokenEvmAddress);
-
-        const htsContract = new Contract(HTS_PRECOMPILE, HTS_ABI, signer);
-
-        const tx = await htsContract.associateToken(userAddress, tokenEvmAddress, { gasLimit: 800000 });
-        const receipt = await tx.wait();
-
-        return { success: true, hash: receipt.hash };
-    } catch (error: any) {
-        console.error("Token association failed:", error);
-        return { success: false, error: error.message || "Association rejected." };
-    }
-}
-
-/**
- * Fetches the user's on-chain point balance from the Arena contract scorecard.
- */
-export async function getUserPoints(userAddress: string) {
+export async function getPlayerXP(userAddress: string) {
     const provider = appKitInstance.getWalletProvider();
     if (!provider) return 0n;
 
@@ -47,24 +13,21 @@ export async function getUserPoints(userAddress: string) {
         const engineAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '').trim();
         const contractEvmAddress = getAddress(engineAddress.toLowerCase());
         
-        const arenaInterface = [
-            "function userPoints(address) external view returns (uint256)"
-        ];
-        
-        const contract = new Contract(contractEvmAddress, arenaInterface, ethersProvider);
-        const points = await contract.userPoints(userAddress);
-        return BigInt(points);
+        const abi = ["function playerXP(address) external view returns (uint256)"];
+        const contract = new Contract(contractEvmAddress, abi, ethersProvider);
+        const xp = await contract.playerXP(userAddress);
+        return BigInt(xp);
     } catch (error) {
-        console.error("Error fetching user points:", error);
+        console.error("Error fetching player XP:", error);
         return 0n;
     }
 }
 
 /**
- * Executes a game transaction on the HashplayArenaV2 smart contract.
+ * Executes a game transaction on the HashplayArenaV5 smart contract.
  * @param wagerAmount Amount of HBAR to wager.
  * @param gameType 1 for Dice, 2 for Coin Flip
- * @param prediction 
+ * @param prediction User's prediction
  */
 export async function playMiningEngineGame(
     wagerAmount: number,
@@ -83,18 +46,18 @@ export async function playMiningEngineGame(
         const engineAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '').trim();
         const contractEvmAddress = getAddress(engineAddress.toLowerCase());
 
-        const arenaV2Interface = [
+        const arenaV5Interface = [
             "function play(uint8 gameType, uint8 prediction) external payable",
-            "event GameResult(address indexed player, uint8 gameType, uint8 prediction, uint256 wager, bool won, uint256 hbarPayout, uint256 pointsEarned, uint256 rollResult)"
+            "event GameResult(address indexed player, uint8 gameType, uint8 prediction, uint256 wager, bool won, uint256 hbarPayout, uint256 xpEarned, uint256 rollResult)"
         ];
-        const contract = new Contract(contractEvmAddress, arenaV2Interface, signer);
+        const contract = new Contract(contractEvmAddress, arenaV5Interface, signer);
 
-        // Hedera EVM uses weibars (1 HBAR = 1e18 weibars), same as ETH wei. parseEther is correct.
+        // Hedera EVM uses weibars (1 HBAR = 1e18 weibars) on the JSON-RPC relay layer.
         const valueToSend = parseEther(wagerAmount.toString());
 
-        // Hedera EVM charges ~2M gas for contracts with .call{value} transfers.
-        // Confirmed via mainnet test: actual gas used ~1,994,504. 2.5M gives safe headroom.
-        const tx = await contract.play(gameType, prediction, { value: valueToSend, gasLimit: 2_500_000 });
+        // Force hex gas limit to prevent wallet from overriding.
+        // 0x2DC6C0 = 3,000,000. V5 uses ~2.98M gas on Hedera mainnet.
+        const tx = await contract.play(gameType, prediction, { value: valueToSend, gasLimit: '0x2DC6C0' });
 
         const receipt = await tx.wait();
 
@@ -112,7 +75,7 @@ export async function playMiningEngineGame(
                 if (parsedLog?.name === 'GameResult') {
                     won = parsedLog.args.won;
                     payout = parsedLog.args.hbarPayout;
-                    pointsEarned = parsedLog.args.pointsEarned;
+                    pointsEarned = parsedLog.args.xpEarned;
                     rollResult = parsedLog.args.rollResult;
                     break;
                 }
