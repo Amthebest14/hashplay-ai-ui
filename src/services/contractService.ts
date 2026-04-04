@@ -1,4 +1,4 @@
-import { BrowserProvider, Contract, parseEther, getAddress } from 'ethers';
+import { BrowserProvider, Contract, parseEther, getAddress, parseUnits } from 'ethers';
 import { appKitInstance } from '../context/WalletConnectContext';
 
 /**
@@ -55,9 +55,13 @@ export async function playMiningEngineGame(
         // Hedera EVM uses weibars (1 HBAR = 1e18 weibars) on the JSON-RPC relay layer.
         const valueToSend = parseEther(wagerAmount.toString());
 
-        // Force hex gas limit to prevent wallet from overriding.
-        // 0x2DC6C0 = 3,000,000. V5 uses ~2.98M gas on Hedera mainnet.
-        const tx = await contract.play(gameType, prediction, { value: valueToSend, gasLimit: '0x2DC6C0' });
+        // Force hex gas limit and explicit gas price to prevent wallet/relay failures.
+        // 0x2DC6C0 = 3,000,000. 1500 gwei = 1.5 tinybars (safe minimum for Mainnet).
+        const tx = await contract.play(gameType, prediction, { 
+            value: valueToSend, 
+            gasLimit: '0x2DC6C0',
+            gasPrice: parseUnits('1500', 'gwei')
+        });
 
         const receipt = await tx.wait();
 
