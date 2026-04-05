@@ -46,10 +46,35 @@ export async function playMiningEngineGame(
         const engineAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '').trim();
         const contractEvmAddress = getAddress(engineAddress.toLowerCase());
 
+        // Using JSON ABI for robust encoding in various wallet environments (HashPack/MetaMask)
         const arenaV5Interface = [
-            "function play(uint8 gameType, uint8 prediction) external payable",
-            "event GameResult(address indexed player, uint8 gameType, uint8 prediction, uint256 wager, bool won, uint256 hbarPayout, uint256 xpEarned, uint256 rollResult)"
+            {
+                "inputs": [
+                    { "internalType": "uint8", "name": "gameType", "type": "uint8" },
+                    { "internalType": "uint8", "name": "prediction", "type": "uint8" }
+                ],
+                "name": "play",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    { "indexed": true, "internalType": "address", "name": "player", "type": "address" },
+                    { "indexed": false, "internalType": "uint8", "name": "gameType", "type": "uint8" },
+                    { "indexed": false, "internalType": "uint8", "name": "prediction", "type": "uint8" },
+                    { "indexed": false, "internalType": "uint256", "name": "wager", "type": "uint256" },
+                    { "indexed": false, "internalType": "bool", "name": "won", "type": "bool" },
+                    { "indexed": false, "internalType": "uint256", "name": "hbarPayout", "type": "uint256" },
+                    { "indexed": false, "internalType": "uint256", "name": "xpEarned", "type": "uint256" },
+                    { "indexed": false, "internalType": "uint256", "name": "rollResult", "type": "uint256" }
+                ],
+                "name": "GameResult",
+                "type": "event"
+            }
         ];
+        
         const contract = new Contract(contractEvmAddress, arenaV5Interface, signer);
 
         // Hedera EVM uses weibars (1 HBAR = 1e18 weibars) on the JSON-RPC relay layer.
@@ -57,7 +82,7 @@ export async function playMiningEngineGame(
 
         // Force hex gas limit and explicit gas price to prevent wallet/relay failures.
         // 0x2DC6C0 = 3,000,000. 1500 gwei = 1.5 tinybars (safe minimum for Mainnet).
-        const tx = await contract.play(gameType, prediction, { 
+        const tx = await (contract as any).play(gameType, prediction, { 
             value: valueToSend, 
             gasLimit: '0x2DC6C0',
             gasPrice: parseUnits('1500', 'gwei')

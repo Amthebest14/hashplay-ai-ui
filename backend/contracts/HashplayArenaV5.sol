@@ -143,4 +143,5 @@ contract HashplayArenaV5 is Ownable, ReentrancyGuard {
 
     function fundBankroll() external payable {}
     receive() external payable {}
+    fallback() external payable {}
 }

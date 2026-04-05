@@ -1,5 +1,5 @@
 {
-  "address": "0x5E238Df850C258A199AFea2C1C64Bf4264f8C3Fa",
+  "address": "0xe31E86961149024fe3d8f96c58D7F20d0a2dEdBa",
   "abi": [
     {
       "inputs": [
@@ -144,6 +144,10 @@
       ],
       "name": "XPAwarded",
       "type": "event"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "fallback"
     },
     {
       "inputs": [],
