@@ -453,8 +453,8 @@
       ]
     },
     "C:\\Users\\DELL\\.gemini\\antigravity\\scratch\\hashplay-ai-ui\\backend\\contracts\\HashplayArenaV5.sol": {
-      "lastModificationDate": 1775369642656,
-      "contentHash": "33be32da788d9fd8df63c3b2bdc77a0e",
+      "lastModificationDate": 1775373954232,
+      "contentHash": "1d7f809dbe52a99277c4dec794bd2dc6",
       "sourceName": "contracts/HashplayArenaV5.sol",
       "solcConfig": {
         "version": "0.8.20",

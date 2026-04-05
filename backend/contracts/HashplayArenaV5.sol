@@ -40,7 +40,7 @@ contract HashplayArenaV5 is Ownable, ReentrancyGuard {
     event XPAwarded(address indexed player, uint256 amount);
 
     constructor(address _treasuryWallet) Ownable(msg.sender) {
-        require(_treasuryWallet != address(0), "Invalid treasury address");
+        require(_treasuryWallet != address(0), "ERR_INVALID_TREASURY");
         treasuryWallet = _treasuryWallet;
     }
 
@@ -61,8 +61,8 @@ contract HashplayArenaV5 is Ownable, ReentrancyGuard {
      * @notice Play game (Dice sum 2-12 or Coin Flip). 30% win rate.
      */
     function play(uint8 gameType, uint8 prediction) external payable nonReentrant {
-        require(msg.value >= 1e8, "Min: 1 HBAR"); // 1 HBAR = 10^8 tinybars on Hedera EVM ledger
-        require(gameType == 1 || gameType == 2, "Invalid game");
+        require(msg.value >= 1e8, "ERR_MIN_WAGER_1HBAR"); 
+        require(gameType == 1 || gameType == 2, "ERR_INVALID_GAMETYPE");
 
         totalGamesPlayed++;
 
@@ -90,6 +90,7 @@ contract HashplayArenaV5 is Ownable, ReentrancyGuard {
             if (won) hbarPayout = (prediction == 2) ? msg.value * 4 : msg.value * 2;
         } else {
             // COIN FLIP
+            require(prediction == 1 || prediction == 2, "ERR_INVALID_PREDICTION_COIN");
             rollResult = (randValue % 100) + 1;
             if (prediction == 1 && rollResult <= 30) won = true; 
             else if (prediction == 2 && rollResult >= 71) won = true;
@@ -102,13 +103,13 @@ contract HashplayArenaV5 is Ownable, ReentrancyGuard {
         if (won) {
             if (hbarPayout > address(this).balance) hbarPayout = address(this).balance;
             (bool success, ) = payable(msg.sender).call{value: hbarPayout}("");
-            require(success, "Payout failed");
+            require(success, "ERR_PAYOUT_TRANSFER_FAILED");
             xpEarned = (msg.value / 1e8) * 500;
         } else {
             uint256 treasuryFee = (msg.value * 5) / 100;
             if (treasuryFee > 0) {
                 (bool success, ) = payable(treasuryWallet).call{value: treasuryFee}("");
-                // No require to avoid blocking games
+                require(success, "ERR_TREASURY_TRANSFER_FAILED");
             }
             xpEarned = (msg.value / 1e8) * 200;
         }
@@ -130,13 +131,13 @@ contract HashplayArenaV5 is Ownable, ReentrancyGuard {
      * @notice Allows owner to pull HBAR (legacy/admin).
      */
     function withdrawHBAR(uint256 amount) external onlyOwner {
-        require(address(this).balance >= amount, "Insufficient");
+        require(address(this).balance >= amount, "ERR_INSUFFICIENT_BANKROLL");
         (bool success, ) = payable(owner()).call{value: amount}("");
-        require(success, "Failed");
+        require(success, "ERR_WITHDRAW_FAILED");
     }
 
     function setTreasuryWallet(address _newTreasury) external onlyOwner {
-        require(_newTreasury != address(0), "Invalid");
+        require(_newTreasury != address(0), "ERR_INVALID_NEW_TREASURY");
         treasuryWallet = _newTreasury;
         emit TreasuryUpdated(_newTreasury);
     }

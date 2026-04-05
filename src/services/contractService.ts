@@ -1,20 +1,48 @@
 import { BrowserProvider, Contract, parseEther, getAddress, parseUnits } from 'ethers';
 import { appKitInstance } from '../context/WalletConnectContext';
 
-/**
- * Fetches the user's on-chain XP balance from the ArenaV5 contract.
- */
+const arenaV5Interface = [
+    {
+        "inputs": [
+            { "internalType": "uint8", "name": "gameType", "type": "uint8" },
+            { "internalType": "uint8", "name": "prediction", "type": "uint8" }
+        ],
+        "name": "play",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            { "indexed": true, "internalType": "address", "name": "player", "type": "address" },
+            { "indexed": false, "internalType": "uint8", "name": "gameType", "type": "uint8" },
+            { "indexed": false, "internalType": "uint8", "name": "prediction", "type": "uint8" },
+            { "indexed": false, "internalType": "uint256", "name": "wager", "type": "uint256" },
+            { "indexed": false, "internalType": "bool", "name": "won", "type": "bool" },
+            { "indexed": false, "internalType": "uint256", "name": "hbarPayout", "type": "uint256" },
+            { "indexed": false, "internalType": "uint256", "name": "xpEarned", "type": "uint256" },
+            { "indexed": false, "internalType": "uint256", "name": "rollResult", "type": "uint256" }
+        ],
+        "name": "GameResult",
+        "type": "event"
+    },
+    {
+        "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+        "name": "playerXP",
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+        "stateMutability": "view",
+        "type": "function"
+    }
+];
+
 export async function getPlayerXP(userAddress: string) {
     const provider = appKitInstance.getWalletProvider();
     if (!provider) return 0n;
-
     try {
         const ethersProvider = new BrowserProvider(provider as any);
         const engineAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '').trim();
-        const contractEvmAddress = getAddress(engineAddress.toLowerCase());
-        
-        const abi = ["function playerXP(address) external view returns (uint256)"];
-        const contract = new Contract(contractEvmAddress, abi, ethersProvider);
+        const contract = new Contract(getAddress(engineAddress.toLowerCase()), arenaV5Interface, ethersProvider);
         const xp = await contract.playerXP(userAddress);
         return BigInt(xp);
     } catch (error) {
@@ -23,65 +51,16 @@ export async function getPlayerXP(userAddress: string) {
     }
 }
 
-/**
- * Executes a game transaction on the HashplayArenaV5 smart contract.
- * @param wagerAmount Amount of HBAR to wager.
- * @param gameType 1 for Dice, 2 for Coin Flip
- * @param prediction User's prediction
- */
-export async function playMiningEngineGame(
-    wagerAmount: number,
-    gameType: number,
-    prediction: number
-) {
+export async function playMiningEngineGame(wagerAmount: number, gameType: number, prediction: number) {
     const provider = appKitInstance.getWalletProvider();
-    if (!provider) {
-        throw new Error("Wallet not connected. Please connect via AppKit.");
-    }
-
+    if (!provider) throw new Error("Wallet not connected.");
     try {
         const ethersProvider = new BrowserProvider(provider as any);
         const signer = await ethersProvider.getSigner();
-
         const engineAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '').trim();
-        const contractEvmAddress = getAddress(engineAddress.toLowerCase());
-
-        // Using JSON ABI for robust encoding in various wallet environments (HashPack/MetaMask)
-        const arenaV5Interface = [
-            {
-                "inputs": [
-                    { "internalType": "uint8", "name": "gameType", "type": "uint8" },
-                    { "internalType": "uint8", "name": "prediction", "type": "uint8" }
-                ],
-                "name": "play",
-                "outputs": [],
-                "stateMutability": "payable",
-                "type": "function"
-            },
-            {
-                "anonymous": false,
-                "inputs": [
-                    { "indexed": true, "internalType": "address", "name": "player", "type": "address" },
-                    { "indexed": false, "internalType": "uint8", "name": "gameType", "type": "uint8" },
-                    { "indexed": false, "internalType": "uint8", "name": "prediction", "type": "uint8" },
-                    { "indexed": false, "internalType": "uint256", "name": "wager", "type": "uint256" },
-                    { "indexed": false, "internalType": "bool", "name": "won", "type": "bool" },
-                    { "indexed": false, "internalType": "uint256", "name": "hbarPayout", "type": "uint256" },
-                    { "indexed": false, "internalType": "uint256", "name": "xpEarned", "type": "uint256" },
-                    { "indexed": false, "internalType": "uint256", "name": "rollResult", "type": "uint256" }
-                ],
-                "name": "GameResult",
-                "type": "event"
-            }
-        ];
+        const contract = new Contract(getAddress(engineAddress.toLowerCase()), arenaV5Interface, signer);
         
-        const contract = new Contract(contractEvmAddress, arenaV5Interface, signer);
-
-        // Hedera EVM uses weibars (1 HBAR = 1e18 weibars) on the JSON-RPC relay layer.
         const valueToSend = parseEther(wagerAmount.toString());
-
-        // Force hex gas limit and explicit gas price to prevent wallet/relay failures.
-        // 0x2DC6C0 = 3,000,000. 1500 gwei = 1.5 tinybars (safe minimum for Mainnet).
         const tx = await (contract as any).play(gameType, prediction, { 
             value: valueToSend, 
             gasLimit: '0x2DC6C0',
@@ -89,44 +68,23 @@ export async function playMiningEngineGame(
         });
 
         const receipt = await tx.wait();
-
-        let won = false;
-        let payout = 0n;
-        let pointsEarned = 0n;
-        let rollResult = 0n;
+        let result = { success: true, hash: receipt.hash, won: false, payout: 0n, pointsEarned: 0n, rollResult: 0n };
 
         for (const log of receipt.logs) {
             try {
-                const parsedLog = contract.interface.parseLog({
-                    topics: log.topics as string[],
-                    data: log.data
-                });
+                const parsedLog = contract.interface.parseLog({ topics: log.topics as string[], data: log.data });
                 if (parsedLog?.name === 'GameResult') {
-                    won = parsedLog.args.won;
-                    payout = parsedLog.args.hbarPayout;
-                    pointsEarned = parsedLog.args.xpEarned;
-                    rollResult = parsedLog.args.rollResult;
+                    result.won = parsedLog.args.won;
+                    result.payout = parsedLog.args.hbarPayout;
+                    result.pointsEarned = parsedLog.args.xpEarned;
+                    result.rollResult = parsedLog.args.rollResult;
                     break;
                 }
-            } catch (e) {
-                // Ignore parsing errors for other logs
-            }
+            } catch (e) {}
         }
-
-        return {
-            success: true,
-            hash: receipt.hash,
-            won,
-            payout,
-            pointsEarned,
-            rollResult
-        };
-
+        return result;
     } catch (error: any) {
         console.error("Game transaction failed:", error);
-        return {
-            success: false,
-            error: error.message || "Transaction failed or was rejected."
-        };
+        return { success: false, error: error.message || "Transaction failed." };
     }
 }

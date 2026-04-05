@@ -143,17 +143,13 @@ export default function SectionArena() {
             const result = await playMiningEngineGame(wager, gameType, prediction);
             clearTimeout(congestionTimer);
 
-            if (result.success) {
+            if (result.success && 'won' in result) {
                 let diceRes: [number, number] = [1, 6];
                 let coinRes = 1;
 
                 const onChainRoll = Number(result.rollResult);
 
                 if (gameType === 1) {
-                    // Split the sum into two dice
-                    // We can use the same logic as the contract or just a simple split
-                    // Since the contract rolled die1 + die2, we can't know exactly what they were 
-                    // unless we return die1/die2 separately, but we can simulate a valid pair for that sum.
                     let d1 = Math.floor(onChainRoll / 2);
                     if (d1 < 1) d1 = 1;
                     if (d1 > 6) d1 = 6;
@@ -168,11 +164,9 @@ export default function SectionArena() {
                     }
                     diceRes = [d1, d2];
                 } else {
-                    // Coin Flip
-                    // 1-48 is Heads (1), 53-100 is Tails (2), 49-52 is Edge/Loss
                     if (onChainRoll <= 48) coinRes = 1;
                     else if (onChainRoll >= 53) coinRes = 2;
-                    else coinRes = 3; // Special "Edge" state if we had one, but for now just show result
+                    else coinRes = 3;
                 }
 
                 setGameState({
@@ -200,7 +194,7 @@ export default function SectionArena() {
                 setTxState({ status: 'success', message: outcomeMsg });
                 window.dispatchEvent(new Event('refreshPoints'));
                 window.dispatchEvent(new Event('refreshBalances'));
-            } else {
+            } else if (!result.success && 'error' in result) {
                 setGameState(prev => ({ ...prev, isSpinning: false }));
                 const isRejected = result.error?.toLowerCase().includes('reject');
                 setTxState({ status: 'error', message: isRejected ? 'Transaction Cancelled' : result.error || 'Transaction failed.' });
