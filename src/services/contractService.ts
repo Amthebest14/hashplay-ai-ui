@@ -63,8 +63,8 @@ export async function playMiningEngineGame(wagerAmount: number, gameType: number
         const valueToSend = parseEther(wagerAmount.toString());
         const tx = await (contract as any).play(gameType, prediction, { 
             value: valueToSend, 
-            gasLimit: '0x2DC6C0',
-            gasPrice: parseUnits('1500', 'gwei')
+            gasLimit: '0xF4240',
+            gasPrice: parseUnits('1200', 'gwei')
         });
 
         const receipt = await tx.wait();
