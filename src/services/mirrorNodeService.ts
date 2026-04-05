@@ -34,7 +34,7 @@ export async function getAccountBalances(accountId: string): Promise<{ hbar: num
 }
 
 /**
- * Fetches the Global XP Leaderboard by querying XPAwarded events from the contract,
+ * Fetches the Global XP Leaderboard by querying the contract's playerIndex,
  * then reading each player's playerXP on-chain.
  */
 export async function getTopPlayersByXP(limit: number = 25): Promise<LeaderboardEntry[]> {
@@ -42,44 +42,44 @@ export async function getTopPlayersByXP(limit: number = 25): Promise<Leaderboard
         const contractEvmAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '').trim().toLowerCase();
         if (!contractEvmAddress) return [];
 
-        // 1. Find the contract's Hedera ID
-        const contractRes = await fetch(`${HEDERA_MIRROR}/accounts/${contractEvmAddress}`);
-        if (!contractRes.ok) return [];
-        const contractData = await contractRes.json();
-        const contractId = contractData.account;
-
-        // 2. Fetch XPAwarded logs to discover unique players
-        // XPAwarded(address indexed player, uint256 amount)
-        // keccak256("XPAwarded(address,uint256)") = topic0
-        const logsUrl = `${HEDERA_MIRROR}/contracts/${contractId}/results/logs?limit=100&order=desc`;
-        const logsRes = await fetch(logsUrl);
-        if (!logsRes.ok) return [];
-        const logsData = await logsRes.json();
-
-        // Extract unique player addresses from indexed topic[1]
-        const uniquePlayers = new Set<string>();
-        for (const log of logsData.logs || []) {
-            if (log.topics && log.topics.length >= 2) {
-                // topic[1] is the indexed player address (padded to 32 bytes)
-                const rawAddr = '0x' + log.topics[1].slice(26);
-                uniquePlayers.add(rawAddr.toLowerCase());
-            }
-        }
-
-        if (uniquePlayers.size === 0) return [];
-
-        // 3. Query each player's XP on-chain
         const rpcUrl = isMainnet ? "https://mainnet.hashio.io/api" : "https://testnet.hashio.io/api";
         const provider = new JsonRpcProvider(rpcUrl);
-        const abi = ["function playerXP(address) view returns (uint256)"];
+        const abi = [
+            "function getPlayerCount() view returns (uint256)",
+            "function playerIndex(uint256) view returns (address)",
+            "function playerXP(address) view returns (uint256)"
+        ];
         const contract = new Contract(contractEvmAddress, abi, provider);
+
+        // 1. Get total player count
+        const countBig = await contract.getPlayerCount();
+        const count = Number(countBig);
+        if (count === 0) return [];
+
+        // 2. Discover all players from index
+        // For efficiency, we iterate the index directly. If the count grows very large (e.g. > 1000), 
+        // we'll move to a mirror node state query, but for current adoption, this is the Source of Truth.
+        const playerAddresses: string[] = [];
+        
+        // Fetch up to 100 players directly from index (safety limit for RPC)
+        const fetchCount = Math.min(count, 100);
+        await Promise.all(
+            Array.from({ length: fetchCount }, (_, i) => i).map(async (i) => {
+                try {
+                    const addr = await contract.playerIndex(i);
+                    playerAddresses.push(addr);
+                } catch {}
+            })
+        );
 
         const entries: LeaderboardEntry[] = [];
 
-        await Promise.all(Array.from(uniquePlayers).map(async (evmAddr) => {
+        // 3. Query each player's XP and resolve labels
+        await Promise.all(playerAddresses.map(async (evmAddr) => {
             try {
                 const xp = await contract.playerXP(evmAddr);
                 const xpNum = Number(xp);
+                
                 if (xpNum > 0) {
                     // Try to resolve Hedera account ID
                     let displayAccount = evmAddr;
