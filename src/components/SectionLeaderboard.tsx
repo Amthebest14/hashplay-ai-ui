@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { getTopPlayersByXP, type LeaderboardEntry } from '../services/mirrorNodeService';
+import season1Data from '../data/season1.json';
 
 const PLAYERS_PER_PAGE = 100;
 
@@ -8,16 +9,22 @@ export default function SectionLeaderboard() {
     const [allPlayers, setAllPlayers] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
+    const [activeSeason, setActiveSeason] = useState<1 | 2>(2);
 
     useEffect(() => {
         async function fetchLeaderboard() {
             setLoading(true);
-            const topPlayers = await getTopPlayersByXP(500);
-            setAllPlayers(topPlayers);
+            if (activeSeason === 2) {
+                const topPlayers = await getTopPlayersByXP(500);
+                setAllPlayers(topPlayers);
+            } else {
+                setAllPlayers(season1Data as LeaderboardEntry[]);
+            }
+            setCurrentPage(1);
             setLoading(false);
         }
         fetchLeaderboard();
-    }, []);
+    }, [activeSeason]);
 
     const totalPages = Math.max(1, Math.ceil(allPlayers.length / PLAYERS_PER_PAGE));
     const startIndex = (currentPage - 1) * PLAYERS_PER_PAGE;
@@ -54,6 +61,24 @@ export default function SectionLeaderboard() {
                 <h2 className="text-3xl font-light tracking-widest text-white">Global Leaderboard</h2>
                 <p className="text-xs tracking-[0.3em] text-emerald-400/60 uppercase">Ranked by On-Chain XP</p>
                 <div className="h-px w-24 bg-gradient-to-r from-transparent via-emerald-400/50 to-transparent mx-auto mt-2" />
+                
+                {/* Season Toggle */}
+                <div className="flex justify-center mt-4">
+                    <div className="bg-black/40 p-1 rounded-xl border border-emerald-400/20 flex gap-1">
+                        <button 
+                            onClick={() => setActiveSeason(1)}
+                            className={`px-6 py-2 rounded-lg text-xs font-bold tracking-widest transition-all duration-300 ${activeSeason === 1 ? 'bg-emerald-400/20 text-emerald-300 shadow-[0_0_15px_rgba(52,211,153,0.2)]' : 'text-white/40 hover:text-white/80'}`}
+                        >
+                            SEASON 1
+                        </button>
+                        <button 
+                            onClick={() => setActiveSeason(2)}
+                            className={`px-6 py-2 rounded-lg text-xs font-bold tracking-widest transition-all duration-300 ${activeSeason === 2 ? 'bg-emerald-400/20 text-emerald-300 shadow-[0_0_15px_rgba(52,211,153,0.2)]' : 'text-white/40 hover:text-white/80'}`}
+                        >
+                            SEASON 2 (LIVE)
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div className="glass-panel rounded-3xl flex-1 flex flex-col overflow-hidden border border-emerald-400/10">
