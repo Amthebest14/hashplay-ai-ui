@@ -4,13 +4,13 @@ import { useAppKitAccount } from '@reown/appkit/react';
 import { appKitInstance } from '../context/WalletConnectContext';
 import PlayTokenArtifact from '../contracts/PlayToken.json';
 
-const PLAY_TOKEN_ADDRESS = import.meta.env.VITE_HASHPLAY_TOKEN_ID || "0x204D71684c5F33ACbEc3182EE07B875910a0E1c8";
+const PLAY_TOKEN_ADDRESS = "0x204D71684c5F33ACbEc3182EE07B875910a0E1c8";
 
 export default function SectionToken() {
   const { isConnected, address } = useAppKitAccount();
   const [supply, setSupply] = useState<string>("0");
   const [balance, setBalance] = useState<string>("0");
-  const [price, setPrice] = useState<string>("0.0100");
+  const [price, setPrice] = useState<string>("0.0001");
 
   useEffect(() => {
     fetchTokenData();
@@ -45,10 +45,11 @@ export default function SectionToken() {
         setBalance("0");
       }
 
-      // Bonding curve price: Base 0.01 HBAR + (supply * 0.00000001)
-      const basePrice = 0.01;
-      const calculatedPrice = basePrice + (currentSupply * 0.00000001);
-      setPrice(calculatedPrice.toFixed(4));
+      // Fetch actual bonding curve price from contract
+      const priceWei = await playToken.currentPrice();
+      // Price is in wei. 1 HBAR = 1e18 wei.
+      const priceHbar = Number(formatUnits(priceWei, 18));
+      setPrice(priceHbar.toFixed(4));
     } catch (e) {
       console.error("Error fetching token data:", e);
     }
