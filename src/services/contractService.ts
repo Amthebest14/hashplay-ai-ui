@@ -41,7 +41,7 @@ export async function getPlayerXP(userAddress: string) {
     if (!provider) return 0n;
     try {
         const ethersProvider = new BrowserProvider(provider as any);
-        const engineAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '').trim();
+        const engineAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '0x0000000000000000000000000000000000a2306e').trim();
         const contract = new Contract(getAddress(engineAddress.toLowerCase()), arenaV5Interface, ethersProvider);
         const xp = await contract.playerXP(userAddress);
         return BigInt(xp);
@@ -57,7 +57,7 @@ export async function playMiningEngineGame(wagerAmount: number, gameType: number
     try {
         const ethersProvider = new BrowserProvider(provider as any);
         const signer = await ethersProvider.getSigner();
-        const engineAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '').trim();
+        const engineAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '0x0000000000000000000000000000000000a2306e').trim();
         const contract = new Contract(getAddress(engineAddress.toLowerCase()), arenaV5Interface, signer);
         
         const valueToSend = parseEther(wagerAmount.toString());

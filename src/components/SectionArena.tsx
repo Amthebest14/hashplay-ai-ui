@@ -94,6 +94,7 @@ function CoinMock({ isSpinning, result }: { isSpinning: boolean, result: number 
     );
 }
 
+
 export default function SectionArena() {
     const [wager, setWager] = useState<number>(0);
     const wagerOptions = [5, 10, 25, 50, 100, 500];
