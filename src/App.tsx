@@ -5,11 +5,12 @@ import PersistentUI from './components/PersistentUI';
 import SectionHero from './components/SectionHero';
 import SectionArena from './components/SectionArena';
 import SectionLeaderboard from './components/SectionLeaderboard';
+import SectionToken from './components/SectionToken';
 import { NotificationProvider } from './context/NotificationContext';
 import NotificationToast from './components/NotificationToast';
 
 function App() {
-  const [currentSection, setCurrentSection] = useState<'home' | 'arena' | 'leaderboard'>('home');
+  const [currentSection, setCurrentSection] = useState<'home' | 'arena' | 'leaderboard' | 'token'>('home');
   const [bgSpeed, setBgSpeed] = useState(1);
   const mainContainerRef = useRef<HTMLDivElement>(null);
 
@@ -24,7 +25,7 @@ function App() {
     );
   }, [currentSection]);
 
-  const navigateTo = (section: 'home' | 'arena' | 'leaderboard') => {
+  const navigateTo = (section: 'home' | 'arena' | 'leaderboard' | 'token') => {
     if (section === currentSection) return;
 
     // Speed up ripples by 5x to indicate movement
@@ -71,6 +72,7 @@ function App() {
               {currentSection === 'home' && <SectionHero onEnterArena={() => navigateTo('arena')} />}
               {currentSection === 'arena' && <SectionArena />}
               {currentSection === 'leaderboard' && <SectionLeaderboard />}
+              {currentSection === 'token' && <SectionToken />}
             </div>
           </main>
 
@@ -88,6 +90,13 @@ function App() {
               className={`tracking-widest transition-colors duration-300 ${currentSection === 'arena' ? 'text-hedera-green drop-shadow-[0_0_8px_rgba(0,193,110,0.8)]' : 'text-white/40 hover:text-white'}`}
             >
               Arena
+            </button>
+            <div className="w-px h-4 bg-white/20" />
+            <button
+              onClick={() => navigateTo('token')}
+              className={`tracking-widest transition-colors duration-300 ${currentSection === 'token' ? 'text-hedera-green drop-shadow-[0_0_8px_rgba(0,193,110,0.8)]' : 'text-white/40 hover:text-white'}`}
+            >
+              Token
             </button>
             <div className="w-px h-4 bg-white/20" />
             <button

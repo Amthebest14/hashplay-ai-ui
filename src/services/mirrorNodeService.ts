@@ -37,7 +37,7 @@ export async function getAccountBalances(accountId: string): Promise<{ hbar: num
  * Fetches the Global XP Leaderboard by querying the contract's playerIndex,
  * then reading each player's playerXP on-chain.
  */
-export async function getTopPlayersByXP(limit: number = 25): Promise<LeaderboardEntry[]> {
+export async function getTopPlayersByXP(limit: number = 500): Promise<LeaderboardEntry[]> {
     try {
         const contractEvmAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '').trim().toLowerCase();
         if (!contractEvmAddress) return [];
@@ -62,7 +62,7 @@ export async function getTopPlayersByXP(limit: number = 25): Promise<Leaderboard
         const playerAddresses: string[] = [];
         
         // Fetch up to 100 players directly from index (safety limit for RPC)
-        const fetchCount = Math.min(count, 100);
+        const fetchCount = Math.min(count, 500);
         await Promise.all(
             Array.from({ length: fetchCount }, (_, i) => i).map(async (i) => {
                 try {

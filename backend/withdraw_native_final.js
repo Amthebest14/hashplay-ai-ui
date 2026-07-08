@@ -20,11 +20,7 @@ async function main() {
     );
 
     const contracts = [
-        '0.0.10418933', // V3
-        '0.0.10419246', // V4
-        '0.0.10419442', // V4-Opt
-        '0.0.10420289', // V5-Fail-1
-        '0.0.10420291'  // V5-Fail-2
+        "0.0.10420613" // Former V5.1 with 5 HBAR
     ];
 
     console.log("🚀 Starting FINAL Bulk Withdrawal to Treasury via Native SDK...");
