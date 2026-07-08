@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { BrowserProvider, Contract, formatUnits } from 'ethers';
 import { useAppKitAccount } from '@reown/appkit/react';
 import { appKitInstance } from '../context/WalletConnectContext';
+import { BrowserProvider, Contract, formatUnits, parseUnits, parseEther } from 'ethers';
 import PlayTokenArtifact from '../contracts/PlayToken.json';
 
 const PLAY_TOKEN_ADDRESS = "0x204D71684c5F33ACbEc3182EE07B875910a0E1c8";
@@ -13,6 +13,11 @@ export default function SectionToken() {
   const [price, setPrice] = useState<string>("0.0001");
   const [marketCap, setMarketCap] = useState<string>("0");
   const holders = "426+";
+
+  // Swap State
+  const [swapMode, setSwapMode] = useState<'buy' | 'sell'>('buy');
+  const [swapAmount, setSwapAmount] = useState<string>('');
+  const [isSwapping, setIsSwapping] = useState(false);
 
   useEffect(() => {
     fetchTokenData();
@@ -57,6 +62,36 @@ export default function SectionToken() {
       setMarketCap(mcap.toLocaleString(undefined, { maximumFractionDigits: 0 }));
     } catch (e) {
       console.error("Error fetching token data:", e);
+    }
+  };
+
+  const handleSwap = async () => {
+    if (!isConnected || !address) return alert("Please connect your wallet first.");
+    if (!swapAmount || isNaN(Number(swapAmount)) || Number(swapAmount) <= 0) return alert("Enter a valid amount.");
+
+    setIsSwapping(true);
+    try {
+      const provider = appKitInstance.getWalletProvider();
+      const ethersProvider = new BrowserProvider(provider as any);
+      const signer = await ethersProvider.getSigner();
+      const playToken = new Contract(PLAY_TOKEN_ADDRESS, PlayTokenArtifact.abi, signer);
+
+      if (swapMode === 'buy') {
+        const tx = await playToken.buy({ value: parseEther(swapAmount) });
+        await tx.wait();
+        alert("Successfully bought $PLAY!");
+      } else {
+        const tx = await playToken.sell(parseUnits(swapAmount, 8));
+        await tx.wait();
+        alert("Successfully sold $PLAY!");
+      }
+      setSwapAmount('');
+      fetchTokenData();
+    } catch (e: any) {
+      console.error(e);
+      alert("Swap failed. Check console for details.");
+    } finally {
+      setIsSwapping(false);
     }
   };
 
@@ -135,21 +170,92 @@ export default function SectionToken() {
             </p>
           </div>
 
-          <a 
-            href={`https://www.saucerswap.finance/swap/HBAR/${PLAY_TOKEN_ADDRESS}`} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="group relative inline-flex items-center justify-center px-10 py-5 font-bold text-white bg-white/5 border border-white/10 rounded-2xl overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(0,193,110,0.4)]"
-          >
-            <div className="absolute inset-0 w-full h-full -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:animate-shimmer" />
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-hedera-green/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <span className="relative flex items-center gap-3 text-lg tracking-wider">
-              Trade on SaucerSwap
-              <svg className="w-5 h-5 text-hedera-green group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-            </span>
-          </a>
+          <div className="flex flex-col gap-4 min-w-[300px]">
+            <div className="flex bg-black/50 p-1 rounded-xl">
+              <button 
+                onClick={() => setSwapMode('buy')}
+                className={`flex-1 py-2 font-bold rounded-lg transition-all ${swapMode === 'buy' ? 'bg-hedera-green text-black' : 'text-white/60 hover:text-white'}`}
+              >
+                Buy PLAY
+              </button>
+              <button 
+                onClick={() => setSwapMode('sell')}
+                className={`flex-1 py-2 font-bold rounded-lg transition-all ${swapMode === 'sell' ? 'bg-red-500 text-white' : 'text-white/60 hover:text-white'}`}
+              >
+                Sell PLAY
+              </button>
+            </div>
+            
+            <div className="flex flex-col gap-2 relative">
+              <input 
+                type="number"
+                value={swapAmount}
+                onChange={(e) => setSwapAmount(e.target.value)}
+                placeholder={`Amount in ${swapMode === 'buy' ? 'HBAR' : 'PLAY'}`}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-bold placeholder:text-white/20 outline-none focus:border-hedera-green transition-colors"
+                disabled={isSwapping}
+              />
+              <button 
+                onClick={handleSwap}
+                disabled={isSwapping || !swapAmount}
+                className="w-full py-3 rounded-xl font-black uppercase tracking-widest text-black bg-hedera-green hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {isSwapping ? 'Swapping...' : `Confirm ${swapMode}`}
+              </button>
+            </div>
+          </div>
 
         </div>
+      </div>
+
+      {/* Tokenomics Breakdown */}
+      <div className="w-full mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <div className="glass-panel p-8 rounded-[2rem] border border-emerald-500/20 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[50px] rounded-full group-hover:bg-emerald-500/20 transition-colors" />
+          <h3 className="text-2xl font-black text-white mb-6 flex items-center gap-3">
+            <svg className="w-6 h-6 text-emerald-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            Fair Launch Model
+          </h3>
+          <ul className="space-y-4">
+            <li className="flex justify-between items-center border-b border-white/5 pb-2">
+              <span className="text-white/60 font-medium">Community Airdrop</span>
+              <span className="text-emerald-400 font-bold">100% (20,000,000 PLAY)</span>
+            </li>
+            <li className="flex justify-between items-center border-b border-white/5 pb-2">
+              <span className="text-white/60 font-medium">Team Allocation</span>
+              <span className="text-white font-bold">0%</span>
+            </li>
+            <li className="flex justify-between items-center border-b border-white/5 pb-2">
+              <span className="text-white/60 font-medium">Pre-Sale</span>
+              <span className="text-white font-bold">0%</span>
+            </li>
+            <li className="flex justify-between items-center pt-2">
+              <span className="text-white/60 font-medium">Liquidity Mechanism</span>
+              <span className="text-blue-400 font-bold">Protocol-Owned Curve</span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="glass-panel p-8 rounded-[2rem] border border-orange-500/20 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 blur-[50px] rounded-full group-hover:bg-orange-500/20 transition-colors" />
+          <h3 className="text-2xl font-black text-white mb-6 flex items-center gap-3">
+            <svg className="w-6 h-6 text-orange-400" fill="currentColor" viewBox="0 0 24 24"><path d="M17.5 19.5A7.5 7.5 0 0 0 10 12V3a7.5 7.5 0 0 0-7.5 7.5v9h15z"/></svg>
+            Hyper-Deflationary Sink
+          </h3>
+          <p className="text-white/60 leading-relaxed mb-6">
+            $PLAY utilizes a revolutionary Auto-Buyback mechanism built directly into the Arena Smart Contract.
+          </p>
+          <div className="bg-black/30 p-4 rounded-xl border border-white/5 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center shrink-0 mt-1">
+              <span className="text-orange-400 font-black">2.5%</span>
+            </div>
+            <p className="text-sm text-white/80">
+              Of all HBAR lost in the Arena is automatically routed to instantly buy $PLAY from the open market and send it to a permanent burn address, guaranteeing constant buy pressure.
+            </p>
+          </div>
+        </div>
+
       </div>
 
     </div>
