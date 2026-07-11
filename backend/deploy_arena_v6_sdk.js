@@ -13,7 +13,7 @@ async function main() {
 
     const client = Client.forMainnet();
     client.setOperator(AccountId.fromString(SENDER_ID), PrivateKey.fromStringECDSA(SENDER_KEY));
-    client.setDefaultMaxTransactionFee(new Hbar(15)); // Set max transaction fee to 15 HBAR
+    client.setDefaultMaxTransactionFee(new Hbar(20)); // Set max transaction fee to 20 HBAR
     
     // Read the compiled contract bytecode
     const artifactPath = path.resolve(__dirname, "artifacts/contracts/HashplayArenaV6.sol/HashplayArenaV6.json");
@@ -33,7 +33,7 @@ async function main() {
 
     const contractCreateFlow = new ContractCreateFlow()
         .setBytecode(bytecode)
-        .setGas(800_000)
+        .setGas(2_000_000)
         .setConstructorParameters(constructorParams);
 
     const txResponse = await contractCreateFlow.execute(client);

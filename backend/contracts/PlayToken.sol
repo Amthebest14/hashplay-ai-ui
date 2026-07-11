@@ -19,8 +19,8 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 contract PlayToken is ERC20, Ownable, ReentrancyGuard {
 
     // ── Bonding Curve Parameters ────────────────────────────────────────────
-    uint256 public constant BASE_PRICE = 1e14;   // 0.0001 HBAR in wei (starting price)
-    uint256 public constant SLOPE      = 1e8;    // price increment per whole PLAY sold via curve
+    uint256 public constant BASE_PRICE = 10000;  // 0.0001 HBAR in tinybars (starting price)
+    uint256 public constant SLOPE      = 10000;  // price increment per whole PLAY sold via curve
 
     // Tracks only curve-purchased supply (not airdrops/rewards)
     uint256 public bondingSupply;

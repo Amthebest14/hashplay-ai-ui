@@ -4,9 +4,8 @@ const { Client, PrivateKey, AccountId, ContractId, ContractExecuteTransaction, C
 const OWNER_ID = "0.0.10627830";
 const OWNER_KEY = process.env.OWNER_KEY;
 
-// PlayToken contract ID (you can look it up from its evm address or you can just use its evm address)
 const PLAY_TOKEN_EVM = "0x204D71684c5F33ACbEc3182EE07B875910a0E1c8";
-const ARENA_ADDRESS = "0xf3bE968617F4958390946aEF09EFCbD0E0f20c13";
+const ARENA_ADDRESS = "0x0000000000000000000000000000000000a2306e";
 
 async function main() {
     console.log("Granting Minter role to ArenaV6 via Hedera SDK...");

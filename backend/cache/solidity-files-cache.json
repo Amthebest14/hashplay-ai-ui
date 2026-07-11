@@ -492,8 +492,8 @@
       ]
     },
     "C:\\Users\\DELL\\.gemini\\antigravity\\scratch\\hashplay-ai-ui\\backend\\contracts\\PlayToken.sol": {
-      "lastModificationDate": 1783464048166,
-      "contentHash": "23bd8ef7bcc43ed01af738c95a42bc75",
+      "lastModificationDate": 1783811170029,
+      "contentHash": "eeafec261045803c0b1a58480b03b951",
       "sourceName": "contracts/PlayToken.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -649,8 +649,8 @@
       ]
     },
     "C:\\Users\\DELL\\.gemini\\antigravity\\scratch\\hashplay-ai-ui\\backend\\contracts\\HashplayArenaV6.sol": {
-      "lastModificationDate": 1783466409230,
-      "contentHash": "b93d2aaafea49b54ff6531e05592c5d7",
+      "lastModificationDate": 1783473332941,
+      "contentHash": "08bf91266565476e25662f5b5c54a672",
       "sourceName": "contracts/HashplayArenaV6.sol",
       "solcConfig": {
         "version": "0.8.20",

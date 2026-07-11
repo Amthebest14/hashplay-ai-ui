@@ -58,7 +58,7 @@ async function main() {
         address:    p.address,
         xp:         p.xp,
         playAmount: (p.xp * poolUnits) / totalXP
-    })).filter(p => p.playAmount > 0n);
+    })).filter(p => p.playAmount > 0n).slice(50);
 
     const totalMinted = airdropList.reduce((s, p) => s + p.playAmount, 0n);
     console.log(`Total XP:          ${totalXP.toLocaleString()}`);
@@ -93,7 +93,7 @@ async function main() {
         try {
             const tx = new ContractExecuteTransaction()
                 .setContractId(contractId)
-                .setGas(5_000_000)
+                .setGas(2_000_000)
                 .setFunction("batchAirdrop", params);
 
             const response = await tx.execute(client);
