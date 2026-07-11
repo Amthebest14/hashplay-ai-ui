@@ -37,7 +37,16 @@ async function main() {
     await txAirdrop.wait();
     console.log("✅ Balance restored.");
     
-    // 4. Update UI files
+    // 4. Seed with Liquidity
+    console.log(`\nSeeding 1 HBAR as initial liquidity...`);
+    const txSeed = await wallet.sendTransaction({
+        to: newAddress,
+        value: ethers.parseEther("1.0")
+    });
+    await txSeed.wait();
+    console.log("✅ Seeded.");
+    
+    // 5. Update UI files
     console.log("\nUpdating SectionToken.tsx with new address...");
     let uiFile = fs.readFileSync('../src/components/SectionToken.tsx', 'utf8');
     uiFile = uiFile.replace(/const PLAY_TOKEN_ADDRESS = "0x[a-fA-F0-9]+";/, `const PLAY_TOKEN_ADDRESS = "${newAddress}";`);
