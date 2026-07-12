@@ -492,8 +492,8 @@
       ]
     },
     "C:\\Users\\DELL\\.gemini\\antigravity\\scratch\\hashplay-ai-ui\\backend\\contracts\\PlayToken.sol": {
-      "lastModificationDate": 1783811170029,
-      "contentHash": "eeafec261045803c0b1a58480b03b951",
+      "lastModificationDate": 1783814277158,
+      "contentHash": "4de5c47f018daba71e02ca4b1ebb8717",
       "sourceName": "contracts/PlayToken.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -686,6 +686,42 @@
       "artifacts": [
         "HashplayArenaV6",
         "IPlayToken"
+      ]
+    },
+    "C:\\Users\\DELL\\.gemini\\antigravity\\scratch\\hashplay-ai-ui\\backend\\contracts\\TestDecimals.sol": {
+      "lastModificationDate": 1783814609139,
+      "contentHash": "9dc1d0b31ccfc7c3ce236bdb38ba722b",
+      "sourceName": "contracts/TestDecimals.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "TestDecimals"
       ]
     }
   }

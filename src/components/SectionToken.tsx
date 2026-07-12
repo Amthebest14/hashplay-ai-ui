@@ -53,7 +53,7 @@ export default function SectionToken() {
       ]);
 
       const currentSupply = Number(formatUnits(totalSupply, 8));
-      const priceHbar = Number(formatUnits(priceWei, 18));
+      const priceHbar = Number(formatUnits(priceWei, 8));
       const liquidityHbar = Number(formatUnits(contractBalanceWei, 18));
 
       setSupply(currentSupply.toLocaleString(undefined, { maximumFractionDigits: 0 }));
