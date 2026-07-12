@@ -4,7 +4,7 @@ import { appKitInstance } from '../context/WalletConnectContext';
 import { BrowserProvider, Contract, JsonRpcProvider, formatUnits, parseUnits, parseEther } from 'ethers';
 import PlayTokenArtifact from '../contracts/PlayToken.json';
 
-const PLAY_TOKEN_ADDRESS = "0x165C38e572B6B8b0c2A29e4150a57072bD31e37D";
+const PLAY_TOKEN_ADDRESS = "0x0000000000000000000000000000000000a22afd";
 const HASHIO_RPC = "https://mainnet.hashio.io/api";
 const MIRROR_BASE = "https://mainnet-public.mirrornode.hedera.com/api/v1";
 
