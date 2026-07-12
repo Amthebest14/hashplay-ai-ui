@@ -492,8 +492,8 @@
       ]
     },
     "C:\\Users\\DELL\\.gemini\\antigravity\\scratch\\hashplay-ai-ui\\backend\\contracts\\PlayToken.sol": {
-      "lastModificationDate": 1783814277158,
-      "contentHash": "4de5c47f018daba71e02ca4b1ebb8717",
+      "lastModificationDate": 1783871849012,
+      "contentHash": "e716cbe1670c8b25d44ed9ec2ee20e47",
       "sourceName": "contracts/PlayToken.sol",
       "solcConfig": {
         "version": "0.8.20",

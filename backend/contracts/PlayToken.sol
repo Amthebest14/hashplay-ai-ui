@@ -79,13 +79,16 @@ contract PlayToken is ERC20, Ownable, ReentrancyGuard {
         uint256 hbarGross  = (playAmount * price) / 1e8;
         uint256 hbarPayout = (hbarGross * 95) / 100; // 5% spread
 
-        require(address(this).balance >= hbarPayout, "PLAY: Insufficient liquidity");
+        // Convert WEI to TINYBARS for Hedera EVM compatibility
+        uint256 hbarPayoutTinybars = hbarPayout / 1e10;
+
+        require(address(this).balance >= hbarPayoutTinybars, "PLAY: Insufficient liquidity");
 
         // Only reduce bondingSupply if amount came from bonding curve
         if (bondingSupply >= playAmount) bondingSupply -= playAmount;
 
         _burn(msg.sender, playAmount);
-        (bool ok, ) = payable(msg.sender).call{value: hbarPayout}("");
+        (bool ok, ) = payable(msg.sender).call{value: hbarPayoutTinybars}("");
         require(ok, "PLAY: HBAR transfer failed");
 
         emit TokensSold(msg.sender, playAmount, hbarPayout);
@@ -145,8 +148,9 @@ contract PlayToken is ERC20, Ownable, ReentrancyGuard {
      * @notice Emergency HBAR withdrawal by owner.
      */
     function withdrawHBAR(uint256 amount) external onlyOwner {
-        require(address(this).balance >= amount, "PLAY: Insufficient balance");
-        (bool ok, ) = payable(owner()).call{value: amount}("");
+        uint256 tinybars = amount / 1e10;
+        require(address(this).balance >= tinybars, "PLAY: Insufficient balance");
+        (bool ok, ) = payable(owner()).call{value: tinybars}("");
         require(ok, "PLAY: Withdraw failed");
     }
 

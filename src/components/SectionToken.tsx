@@ -4,7 +4,7 @@ import { appKitInstance } from '../context/WalletConnectContext';
 import { BrowserProvider, Contract, JsonRpcProvider, formatUnits, parseUnits, parseEther } from 'ethers';
 import PlayTokenArtifact from '../contracts/PlayToken.json';
 
-const PLAY_TOKEN_ADDRESS = "0x6E165d21dd0B57da3F75CC56C97F9d3C82e42c81";
+const PLAY_TOKEN_ADDRESS = "0x165C38e572B6B8b0c2A29e4150a57072bD31e37D";
 const HASHIO_RPC = "https://mainnet.hashio.io/api";
 const MIRROR_BASE = "https://mainnet-public.mirrornode.hedera.com/api/v1";
 
@@ -53,7 +53,7 @@ export default function SectionToken() {
       ]);
 
       const currentSupply = Number(formatUnits(totalSupply, 8));
-      const priceHbar = Number(formatUnits(priceWei, 8));
+      const priceHbar = Number(formatUnits(priceWei, 18));
       const liquidityHbar = Number(formatUnits(contractBalanceWei, 18));
 
       setSupply(currentSupply.toLocaleString(undefined, { maximumFractionDigits: 0 }));
