@@ -6,7 +6,7 @@ const path = require("path");
 // Deployer = owner: 0.0.10627830 (OWNER_KEY). No separate transfer step here —
 // a follow-up transferOwnership() to the new custody wallet happens afterward,
 // once that wallet's address is confirmed.
-const SEED_LIQUIDITY_HBAR = process.env.SEED_LIQUIDITY_HBAR || "50";
+const SEED_LIQUIDITY_HBAR = process.env.SEED_LIQUIDITY_HBAR || "5";
 
 async function main() {
     const provider = new ethers.JsonRpcProvider("https://mainnet.hashio.io/api");
