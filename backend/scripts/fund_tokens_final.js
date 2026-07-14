@@ -1,9 +1,10 @@
+require("dotenv").config({ path: "../.env" });
 const { Client, AccountId, PrivateKey, TokenTransferTransaction } = require("@hashgraph/sdk");
 
 async function main() {
-    // Treasury: 0.0.7810956
-    const operatorId = AccountId.fromString("0.0.7810956");
-    const operatorKey = PrivateKey.fromString("0xe2668a034746f62381eccd4fb7d0f35ecc9c00100b62061a6f9673b4513a7f15");
+    // Treasury account and key loaded from .env (see TESTNET_OPERATOR_ID / TESTNET_OPERATOR_KEY)
+    const operatorId = AccountId.fromString(process.env.TESTNET_OPERATOR_ID);
+    const operatorKey = PrivateKey.fromStringECDSA(process.env.TESTNET_OPERATOR_KEY);
     const tokenId = "0.0.8076828";
 
     // Contract: 0.0.8103703
