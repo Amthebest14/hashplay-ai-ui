@@ -13,23 +13,41 @@ const {
     AccountBalanceQuery,
 } = require("@hashgraph/sdk");
 
-// Deployer = owner: 0.0.10627830. This account's on-chain key is ED25519
-// (confirmed via Mirror Node), so this uses the native Hedera SDK rather than
-// ethers.js/JSON-RPC — the EVM relay only accepts ECDSA keys, ED25519 does not
-// work there. No separate transfer step here — a follow-up transferOwnership()
-// to the new custody wallet happens afterward, once that wallet's address is
-// confirmed.
-const OWNER_ACCOUNT_ID = "0.0.10627830";
+// Deployer = owner: whichever account is set as DEPLOY_ACCOUNT_ID. Deploys
+// directly from this wallet, so it's the contract's owner from the start —
+// no separate ownership-transfer step needed. Uses the native Hedera SDK
+// (not ethers.js/JSON-RPC) so it works whether the account's on-chain key is
+// ED25519 or ECDSA — the EVM relay ethers.js talks to only accepts ECDSA,
+// which is what broke the first version of this script against an
+// ED25519 account.
+const OWNER_ACCOUNT_ID = process.env.DEPLOY_ACCOUNT_ID;
 const SEED_LIQUIDITY_HBAR = Number(process.env.SEED_LIQUIDITY_HBAR || "5");
 
 async function main() {
     const phrase = process.env.OWNER_PHRASE;
+    if (!OWNER_ACCOUNT_ID) {
+        throw new Error("Add the account ID to deploy from as DEPLOY_ACCOUNT_ID in .env (e.g. DEPLOY_ACCOUNT_ID=0.0.xxxxxxx)");
+    }
     if (!phrase) {
-        throw new Error('Add the 24-word phrase for 0.0.10627830 as OWNER_PHRASE in .env (e.g. OWNER_PHRASE="word1 word2 ...")');
+        throw new Error(`Add the 24-word phrase for ${OWNER_ACCOUNT_ID} as OWNER_PHRASE in .env (e.g. OWNER_PHRASE="word1 word2 ...")`);
     }
 
+    // A mnemonic derives *a* valid-looking key for either curve without
+    // erroring, even if it's the wrong one for this account — so guessing
+    // silently can waste a real mainnet transaction on a signature mismatch.
+    // Set OWNER_KEY_TYPE=ED25519 or ECDSA in .env if you know it (check
+    // HashPack's account details); otherwise this tries ED25519 first.
     const mnemonic = await Mnemonic.fromString(phrase);
-    const privateKey = await mnemonic.toStandardEd25519PrivateKey("", 0);
+    const keyType = (process.env.OWNER_KEY_TYPE || "").toUpperCase();
+    let privateKey;
+    if (keyType === "ECDSA") {
+        privateKey = await mnemonic.toStandardECDSAsecp256k1PrivateKey("", 0);
+    } else if (keyType === "ED25519") {
+        privateKey = await mnemonic.toStandardEd25519PrivateKey("", 0);
+    } else {
+        console.log("[i] OWNER_KEY_TYPE not set — trying ED25519 first. Set it explicitly in .env if this account is ECDSA.");
+        privateKey = await mnemonic.toStandardEd25519PrivateKey("", 0);
+    }
 
     const ownerId = AccountId.fromString(OWNER_ACCOUNT_ID);
     const client = Client.forMainnet().setOperator(ownerId, privateKey);
@@ -121,7 +139,6 @@ async function main() {
     console.log(`  2. Update PLAY_TOKEN_ADDRESS / SHORT_TOKEN_ADDRESS in ../src/components/SectionToken.tsx`);
     console.log(`  3. Run batchAirdrop() once the 426-wallet snapshot data is ready`);
     console.log(`  4. Call setMinter(arenaAddress, true) once ArenaV6 is pointed at this token`);
-    console.log(`  5. transferOwnership(newWalletAddress) once the fresh custody wallet is confirmed`);
 
     client.close();
 }
