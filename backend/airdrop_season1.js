@@ -78,14 +78,23 @@ async function main() {
     const client = Client.forMainnet().setOperator(ownerId, PrivateKey.fromStringECDSA(cleanKey));
     client.setDefaultMaxTransactionFee(new Hbar(20));
 
+    // RETRY_BATCHES=3,4 runs only those 1-indexed batches, so a partial
+    // failure never re-mints already-succeeded batches.
+    const retryList = process.env.RETRY_BATCHES
+        ? process.env.RETRY_BATCHES.split(",").map((n) => parseInt(n.trim(), 10))
+        : null;
+
     const failedBatches = [];
     let totalFeeTinybars = 0n;
 
     for (let i = 0; i < batches.length; i++) {
+        const batchNumber = i + 1;
+        if (retryList && !retryList.includes(batchNumber)) continue;
+
         const batch = batches[i];
         const balBefore = (await new AccountBalanceQuery().setAccountId(ownerId).execute(client)).hbars.toTinybars();
 
-        console.log(`Batch ${i + 1}/${batches.length} (${batch.length} wallets)...`);
+        console.log(`Batch ${batchNumber}/${batches.length} (${batch.length} wallets)...`);
         try {
             const params = new ContractFunctionParameters()
                 .addAddressArray(batch.map((b) => b.account))
