@@ -76,7 +76,13 @@ async function main() {
     const cleanKey = rawKey.startsWith("0x") ? rawKey.substring(2) : rawKey;
     const ownerId = AccountId.fromString(accountId);
     const client = Client.forMainnet().setOperator(ownerId, PrivateKey.fromStringECDSA(cleanKey));
-    client.setDefaultMaxTransactionFee(new Hbar(20));
+    // Hedera's payer-balance precheck requires the account to hold at least
+    // this cap, not just the real cost — the same issue that broke the
+    // original deploy attempt. Observed real cost per 50-wallet batch has
+    // been ~1.78 HBAR, so 20 HBAR was demanding far more headroom than
+    // actually needed and rejecting batches on accounts with less than 20
+    // HBAR even though they had enough for the real fee.
+    client.setDefaultMaxTransactionFee(new Hbar(4));
 
     // RETRY_BATCHES=3,4 runs only those 1-indexed batches, so a partial
     // failure never re-mints already-succeeded batches.
