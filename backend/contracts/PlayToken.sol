@@ -57,13 +57,16 @@ contract PlayToken is ERC20, Ownable, ReentrancyGuard {
     function buy() external payable nonReentrant {
         require(msg.value > 0, "PLAY: Send HBAR to buy");
         uint256 price = currentPrice();
-        uint256 playAmount = (msg.value * 1e8) / price;
+
+        // Convert TINYBARS to WEI for Hedera EVM compatibility
+        uint256 msgValueWei = msg.value * 1e10;
+        uint256 playAmount = (msgValueWei * 1e8) / price;
         require(playAmount > 0, "PLAY: Amount too small");
 
         bondingSupply += playAmount;
         _mint(msg.sender, playAmount);
 
-        emit TokensPurchased(msg.sender, msg.value, playAmount);
+        emit TokensPurchased(msg.sender, msgValueWei, playAmount);
     }
 
     // ── Sell PLAY ────────────────────────────────────────────────────────────

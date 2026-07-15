@@ -1,0 +1,169 @@
+require("dotenv").config({ path: "../.env" });
+const fs = require("fs");
+const path = require("path");
+const {
+    Client,
+    AccountId,
+    Mnemonic,
+    PrivateKey,
+    Hbar,
+    ContractCreateFlow,
+    ContractExecuteTransaction,
+    ContractCallQuery,
+    ContractFunctionParameters,
+    AccountBalanceQuery,
+} = require("@hashgraph/sdk");
+
+// Deployer = owner: whichever account is set as DEPLOY_ACCOUNT_ID. Deploys
+// directly from this wallet, so it's the contract's owner from the start —
+// no separate ownership-transfer step needed. Uses the native Hedera SDK
+// (not ethers.js/JSON-RPC) so it works whether the account's on-chain key is
+// ED25519 or ECDSA — the EVM relay ethers.js talks to only accepts ECDSA,
+// which is what broke the first version of this script against an
+// ED25519 account.
+const OWNER_ACCOUNT_ID = process.env.DEPLOY_ACCOUNT_ID;
+const SEED_LIQUIDITY_HBAR = Number(process.env.SEED_LIQUIDITY_HBAR || "5");
+
+async function main() {
+    if (!OWNER_ACCOUNT_ID) {
+        throw new Error("Add the account ID to deploy from as DEPLOY_ACCOUNT_ID in .env (e.g. DEPLOY_ACCOUNT_ID=0.0.xxxxxxx)");
+    }
+
+    const rawKey = process.env.OWNER_KEY;
+    const phrase = process.env.OWNER_PHRASE;
+
+    let privateKey;
+    if (rawKey) {
+        // Raw private key path (this account is confirmed ECDSA).
+        const cleanKey = rawKey.startsWith("0x") ? rawKey.substring(2) : rawKey;
+        privateKey = PrivateKey.fromStringECDSA(cleanKey);
+    } else if (phrase) {
+        // 24-word phrase fallback. A mnemonic derives *a* valid-looking key
+        // for either curve without erroring, even if it's the wrong one for
+        // this account, so guessing silently can waste a real mainnet
+        // transaction on a signature mismatch. Set OWNER_KEY_TYPE=ED25519 or
+        // ECDSA in .env if using this path.
+        const mnemonic = await Mnemonic.fromString(phrase);
+        const keyType = (process.env.OWNER_KEY_TYPE || "").toUpperCase();
+        if (keyType === "ED25519") {
+            privateKey = await mnemonic.toStandardEd25519PrivateKey("", 0);
+        } else {
+            privateKey = await mnemonic.toStandardECDSAsecp256k1PrivateKey("", 0);
+        }
+    } else {
+        throw new Error(`Add either OWNER_KEY (raw private key) or OWNER_PHRASE (24-word phrase) for ${OWNER_ACCOUNT_ID} in .env`);
+    }
+
+    const ownerId = AccountId.fromString(OWNER_ACCOUNT_ID);
+    const client = Client.forMainnet().setOperator(ownerId, privateKey);
+    client.setDefaultMaxTransactionFee(new Hbar(15));
+
+    const bal = await new AccountBalanceQuery().setAccountId(ownerId).execute(client);
+    console.log(`Deployer/Owner: ${OWNER_ACCOUNT_ID}`);
+    console.log(`Balance:        ${bal.hbars.toString()}\n`);
+
+    const minRequired = SEED_LIQUIDITY_HBAR + 5;
+    if (bal.hbars.toBigNumber().toNumber() < minRequired) {
+        console.error(`[!] WARNING: balance is below deploy + seed requirement (~${minRequired} HBAR). Top up before continuing.`);
+        process.exit(1);
+    }
+
+    const artifactPath = path.resolve(__dirname, "artifacts/contracts/PlayToken.sol/PlayToken.json");
+    if (!fs.existsSync(artifactPath)) {
+        console.error("Compile the contract first with: npx hardhat compile");
+        process.exit(1);
+    }
+    const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+
+    console.log("Deploying fixed $PLAY token...");
+    const contractCreateFlow = new ContractCreateFlow()
+        .setBytecode(artifact.bytecode)
+        .setGas(3_000_000);
+
+    const createResponse = await contractCreateFlow.execute(client);
+    const createReceipt = await createResponse.getReceipt(client);
+    const contractId = createReceipt.contractId;
+    const evmAddress = `0x${contractId.toSolidityAddress()}`;
+
+    console.log(`\n✅ Fixed $PLAY deployed at: ${contractId.toString()} (${evmAddress})`);
+    console.log(`   HashScan: https://hashscan.io/mainnet/contract/${contractId.toString()}`);
+
+    console.log(`\nSeeding ${SEED_LIQUIDITY_HBAR} HBAR liquidity...`);
+    const seedTx = new ContractExecuteTransaction()
+        .setContractId(contractId)
+        .setGas(100_000)
+        .setPayableAmount(new Hbar(SEED_LIQUIDITY_HBAR))
+        .setFunction("seedLiquidity");
+    const seedResponse = await seedTx.execute(client);
+    const seedReceipt = await seedResponse.getReceipt(client);
+    console.log(`✅ Liquidity seeded. Status: ${seedReceipt.status.toString()}`);
+
+    // Sanity-check the buy() fix before we trust it with real money:
+    // send a tiny test buy and confirm it mints a sane (non-zero, non-absurd) amount.
+    console.log(`\nVerifying buy() fix with a 1 HBAR test purchase...`);
+    const priceQuery = await new ContractCallQuery()
+        .setContractId(contractId)
+        .setGas(50_000)
+        .setFunction("currentPrice")
+        .execute(client);
+    const priceBefore = priceQuery.getUint256(0);
+
+    const buyTx = new ContractExecuteTransaction()
+        .setContractId(contractId)
+        .setGas(200_000)
+        .setPayableAmount(new Hbar(1))
+        .setFunction("buy");
+    const buyResponse = await buyTx.execute(client);
+    const buyReceipt = await buyResponse.getReceipt(client);
+    console.log(`   buy() tx status: ${buyReceipt.status.toString()}`);
+
+    // AccountId.toSolidityAddress() always returns the "long-zero" address
+    // derived from the account number, but ECDSA accounts also have a real
+    // EVM alias address derived from their key — and that's what msg.sender
+    // actually resolves to inside the contract. Checking the wrong one
+    // makes a successful buy() look like it minted nothing. Look up the
+    // real alias via Mirror Node, falling back to long-zero for ED25519
+    // accounts that have no alias.
+    let ownerEvm = `0x${ownerId.toSolidityAddress()}`;
+    try {
+        const infoRes = await fetch(`https://mainnet-public.mirrornode.hedera.com/api/v1/accounts/${OWNER_ACCOUNT_ID}`);
+        const info = await infoRes.json();
+        if (info.evm_address) ownerEvm = info.evm_address;
+    } catch (e) {
+        console.log(`[i] Could not fetch EVM alias from Mirror Node, using long-zero address. (${e.message})`);
+    }
+
+    const balQuery = await new ContractCallQuery()
+        .setContractId(contractId)
+        .setGas(50_000)
+        .setFunction("balanceOf", new ContractFunctionParameters().addAddress(ownerEvm))
+        .execute(client);
+    const playBalance = balQuery.getUint256(0);
+
+    console.log(`   Price used:      ${priceBefore.toString()} wei/PLAY`);
+    console.log(`   PLAY received:   ${(Number(playBalance) / 1e8).toString()}`);
+    if (playBalance.toString() === "0") {
+        console.error(`   [!] buy() minted 0 PLAY — the fix did not work as expected. Investigate before proceeding.`);
+    } else {
+        console.log(`   ✅ buy() looks correct.`);
+    }
+
+    const config = { PLAY_TOKEN_ADDRESS: evmAddress, PLAY_TOKEN_CONTRACT_ID: contractId.toString() };
+    fs.writeFileSync(
+        path.resolve(__dirname, "play_token_config.json"),
+        JSON.stringify(config, null, 2)
+    );
+    console.log(`\nAddress saved to play_token_config.json`);
+    console.log(`\nNext steps (not automated by this script):`);
+    console.log(`  1. Copy artifacts/contracts/PlayToken.sol/PlayToken.json -> ../src/contracts/PlayToken.json`);
+    console.log(`  2. Update PLAY_TOKEN_ADDRESS / SHORT_TOKEN_ADDRESS in ../src/components/SectionToken.tsx`);
+    console.log(`  3. Run batchAirdrop() once the 426-wallet snapshot data is ready`);
+    console.log(`  4. Call setMinter(arenaAddress, true) once ArenaV6 is pointed at this token`);
+
+    client.close();
+}
+
+main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+});

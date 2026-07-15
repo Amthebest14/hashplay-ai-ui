@@ -1,9 +1,10 @@
+require("dotenv").config({ path: "../.env" });
 const { Client, AccountId, TokenId, TransferTransaction, Hbar, PrivateKey } = require("@hashgraph/sdk");
 
 async function main() {
     // Treasury account and key from .env
-    const id = "0.0.7810956";
-    const key = "0xe2668a034746f62381eccd4fb7d0f35ecc9c00100b62061a6f9673b4513a7f15";
+    const id = process.env.TESTNET_OPERATOR_ID;
+    const key = process.env.TESTNET_OPERATOR_KEY;
 
     const operatorId = AccountId.fromString(id);
     // REMOVE 0x if present for SDK parsing
