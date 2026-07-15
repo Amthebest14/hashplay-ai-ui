@@ -1,1 +1,0 @@
-require("dotenv").config({ path: "../.env" }); const { ethers } = require("ethers"); async function main() { const provider = new ethers.JsonRpcProvider("https://mainnet.hashio.io/api"); const feeData = await provider.getFeeData(); console.log(feeData); } main();
