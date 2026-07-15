@@ -117,7 +117,22 @@ async function main() {
     const buyReceipt = await buyResponse.getReceipt(client);
     console.log(`   buy() tx status: ${buyReceipt.status.toString()}`);
 
-    const ownerEvm = `0x${ownerId.toSolidityAddress()}`;
+    // AccountId.toSolidityAddress() always returns the "long-zero" address
+    // derived from the account number, but ECDSA accounts also have a real
+    // EVM alias address derived from their key — and that's what msg.sender
+    // actually resolves to inside the contract. Checking the wrong one
+    // makes a successful buy() look like it minted nothing. Look up the
+    // real alias via Mirror Node, falling back to long-zero for ED25519
+    // accounts that have no alias.
+    let ownerEvm = `0x${ownerId.toSolidityAddress()}`;
+    try {
+        const infoRes = await fetch(`https://mainnet-public.mirrornode.hedera.com/api/v1/accounts/${OWNER_ACCOUNT_ID}`);
+        const info = await infoRes.json();
+        if (info.evm_address) ownerEvm = info.evm_address;
+    } catch (e) {
+        console.log(`[i] Could not fetch EVM alias from Mirror Node, using long-zero address. (${e.message})`);
+    }
+
     const balQuery = await new ContractCallQuery()
         .setContractId(contractId)
         .setGas(50_000)
