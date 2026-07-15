@@ -5,6 +5,7 @@ const {
     Client,
     AccountId,
     Mnemonic,
+    PrivateKey,
     Hbar,
     ContractCreateFlow,
     ContractExecuteTransaction,
@@ -24,29 +25,33 @@ const OWNER_ACCOUNT_ID = process.env.DEPLOY_ACCOUNT_ID;
 const SEED_LIQUIDITY_HBAR = Number(process.env.SEED_LIQUIDITY_HBAR || "5");
 
 async function main() {
-    const phrase = process.env.OWNER_PHRASE;
     if (!OWNER_ACCOUNT_ID) {
         throw new Error("Add the account ID to deploy from as DEPLOY_ACCOUNT_ID in .env (e.g. DEPLOY_ACCOUNT_ID=0.0.xxxxxxx)");
     }
-    if (!phrase) {
-        throw new Error(`Add the 24-word phrase for ${OWNER_ACCOUNT_ID} as OWNER_PHRASE in .env (e.g. OWNER_PHRASE="word1 word2 ...")`);
-    }
 
-    // A mnemonic derives *a* valid-looking key for either curve without
-    // erroring, even if it's the wrong one for this account — so guessing
-    // silently can waste a real mainnet transaction on a signature mismatch.
-    // Set OWNER_KEY_TYPE=ED25519 or ECDSA in .env if you know it (check
-    // HashPack's account details); otherwise this tries ED25519 first.
-    const mnemonic = await Mnemonic.fromString(phrase);
-    const keyType = (process.env.OWNER_KEY_TYPE || "").toUpperCase();
+    const rawKey = process.env.OWNER_KEY;
+    const phrase = process.env.OWNER_PHRASE;
+
     let privateKey;
-    if (keyType === "ECDSA") {
-        privateKey = await mnemonic.toStandardECDSAsecp256k1PrivateKey("", 0);
-    } else if (keyType === "ED25519") {
-        privateKey = await mnemonic.toStandardEd25519PrivateKey("", 0);
+    if (rawKey) {
+        // Raw private key path (this account is confirmed ECDSA).
+        const cleanKey = rawKey.startsWith("0x") ? rawKey.substring(2) : rawKey;
+        privateKey = PrivateKey.fromStringECDSA(cleanKey);
+    } else if (phrase) {
+        // 24-word phrase fallback. A mnemonic derives *a* valid-looking key
+        // for either curve without erroring, even if it's the wrong one for
+        // this account, so guessing silently can waste a real mainnet
+        // transaction on a signature mismatch. Set OWNER_KEY_TYPE=ED25519 or
+        // ECDSA in .env if using this path.
+        const mnemonic = await Mnemonic.fromString(phrase);
+        const keyType = (process.env.OWNER_KEY_TYPE || "").toUpperCase();
+        if (keyType === "ED25519") {
+            privateKey = await mnemonic.toStandardEd25519PrivateKey("", 0);
+        } else {
+            privateKey = await mnemonic.toStandardECDSAsecp256k1PrivateKey("", 0);
+        }
     } else {
-        console.log("[i] OWNER_KEY_TYPE not set — trying ED25519 first. Set it explicitly in .env if this account is ECDSA.");
-        privateKey = await mnemonic.toStandardEd25519PrivateKey("", 0);
+        throw new Error(`Add either OWNER_KEY (raw private key) or OWNER_PHRASE (24-word phrase) for ${OWNER_ACCOUNT_ID} in .env`);
     }
 
     const ownerId = AccountId.fromString(OWNER_ACCOUNT_ID);
