@@ -89,8 +89,8 @@ async function main() {
         try {
             const params = new ContractFunctionParameters()
                 .addAddressArray(batch.map((b) => b.account))
-                .addUint256Array(batch.map((b) => b.amount))
-                .addUint256Array(batch.map((b) => BigInt(b.xp)));
+                .addUint256Array(batch.map((b) => b.amount.toString()))
+                .addUint256Array(batch.map((b) => b.xp.toString()));
 
             const tx = new ContractExecuteTransaction()
                 .setContractId(CONTRACT_ID)
