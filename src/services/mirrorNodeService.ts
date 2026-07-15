@@ -39,7 +39,7 @@ export async function getAccountBalances(accountId: string): Promise<{ hbar: num
  */
 export async function getTopPlayersByXP(limit: number = 500): Promise<LeaderboardEntry[]> {
     try {
-        const contractEvmAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '0x0000000000000000000000000000000000a2306e').trim().toLowerCase();
+        const contractEvmAddress = (import.meta.env.VITE_MINING_ENGINE_ADDRESS || '0x0000000000000000000000000000000000a26b96').trim().toLowerCase();
         if (!contractEvmAddress) return [];
 
         const rpcUrl = isMainnet ? "https://mainnet.hashio.io/api" : "https://testnet.hashio.io/api";
