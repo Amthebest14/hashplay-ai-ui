@@ -8,6 +8,8 @@ const PLAY_TOKEN_ADDRESS = "0x0000000000000000000000000000000000a26af0";
 const SHORT_TOKEN_ADDRESS = "0x0000000000000000000000000000000000a26af0";
 const HASHIO_RPC = "https://mainnet.hashio.io/api";
 const MIRROR_BASE = "https://mainnet-public.mirrornode.hedera.com/api/v1";
+const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+const MAX_LOG_PAGES = 50; // safety cap: 50 * 100 = 5,000 logs
 
 type TxStatus = 'idle' | 'pending' | 'confirming' | 'success' | 'error';
 
@@ -75,24 +77,41 @@ export default function SectionToken() {
   }, [isConnected, address]);
 
   // ── Fetch holder count from Mirror Node ───────────────────────────────────
+  // PlayToken is a Solidity-deployed ERC20, not a native HTS token, so it has
+  // no entry under /tokens/{id} — that endpoint only indexes actual Hedera
+  // Token Service tokens. Holders are derived instead from the contract's own
+  // Transfer event logs: every unique address that has ever received a
+  // transfer (mint, swap, airdrop, or game reward) counts as a holder. This
+  // can slightly overcount addresses that later sold their full balance, but
+  // is otherwise an accurate, standard way to derive holders for a plain
+  // ERC20 with no dedicated indexer.
   const fetchHolders = useCallback(async () => {
     try {
-      // Use the Hedera token ID for holder count (faster than EVM scan)
-      const tokenId = import.meta.env.VITE_HASHPLAY_TOKEN_ID || "0.0.8076828";
-      const res = await fetch(`${MIRROR_BASE}/tokens/${tokenId}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data.total_supply !== undefined) {
-        // total_supply gives token holders count from HTS if available
-        // Fallback: use accounts endpoint
+      const holderSet = new Set<string>();
+      let url: string | null = `${MIRROR_BASE}/contracts/${PLAY_TOKEN_ADDRESS}/results/logs?limit=100&order=asc`;
+      let pages = 0;
+
+      while (url && pages < MAX_LOG_PAGES) {
+        const res: Response = await fetch(url);
+        if (!res.ok) break;
+        const data = await res.json();
+
+        for (const log of data.logs ?? []) {
+          if (log.topics?.[0] !== TRANSFER_TOPIC) continue;
+          const toTopic = log.topics[2];
+          if (!toTopic) continue;
+          const toAddress = `0x${toTopic.slice(-40)}`;
+          if (toAddress === "0x0000000000000000000000000000000000000000") continue;
+          holderSet.add(toAddress);
+        }
+
+        const next = data.links?.next as string | undefined;
+        url = next ? `https://mainnet-public.mirrornode.hedera.com${next}` : null;
+        pages++;
       }
-      // Use balances endpoint to count holders
-      const countRes = await fetch(`${MIRROR_BASE}/tokens/${tokenId}/balances?limit=100&order=desc`);
-      if (!countRes.ok) return;
-      const countData = await countRes.json();
-      const count = countData.balances?.length ?? 0;
-      const hasMore = !!countData.links?.next;
-      setHolders(hasMore ? `${count}+` : `${count}`);
+
+      const hitCap = pages >= MAX_LOG_PAGES && url !== null;
+      setHolders(hitCap ? `${holderSet.size}+` : `${holderSet.size}`);
     } catch (e) {
       console.error("fetchHolders error:", e);
     }
